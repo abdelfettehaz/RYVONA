@@ -46,10 +46,10 @@ const MyOrders: React.FC = () => {
       try {
         // Fetch user info first
         const userResult = await apiService.getUserInfo();
-        if (userResult.success && userResult.data?.user) {
+        if (userResult.success && userResult.user) {
           setUserInfo({
-            role: userResult.data.user.role,
-            country: userResult.data.user.country || ''
+            role: userResult.user.role,
+            country: userResult.user.country || ''
           });
         }
 
