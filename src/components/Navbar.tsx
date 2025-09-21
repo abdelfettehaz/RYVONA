@@ -171,7 +171,7 @@ const Navbar: React.FC = () => {
                   </button>
 
                   {isNotificationsOpen && (
-                    <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-[100]">
+                    <div className="navbar-dropdown absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-[100] max-w-[90vw] sm:max-w-none">
                       <div className="px-4 py-2 border-b border-gray-100 flex justify-between items-center">
                         <h3 className="text-sm font-semibold text-gray-900">Notifications</h3>
                         {notifications.length > 0 && (
@@ -232,7 +232,7 @@ const Navbar: React.FC = () => {
                   </button>
 
                   {isDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-[100]">
+                    <div className="navbar-dropdown absolute right-0 mt-2 w-56 sm:w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-[100] max-w-[90vw] sm:max-w-none">
                       <div className="px-4 py-3 border-b border-gray-100">
                         <p className="text-sm font-semibold text-gray-900">
                           {user?.firstname} {user?.lastname}
@@ -340,8 +340,8 @@ const Navbar: React.FC = () => {
         </div>
       </div>
       {isMobileMenuOpen && (
-
-                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-[100]">
+        <div className="lg:hidden">
+          <div className="navbar-dropdown absolute right-0 mt-2 w-56 sm:w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-[100] max-w-[90vw] sm:max-w-none">
                       <div className="py-1">
                         <Link
                           to="/"
@@ -387,8 +387,9 @@ const Navbar: React.FC = () => {
                         </Link>
 
                       </div>
-                    </div>
-                  )}
+          </div>
+        </div>
+      )}
 
       {(isDropdownOpen || isNotificationsOpen || isMobileMenuOpen) && (
         <div

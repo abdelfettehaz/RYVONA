@@ -174,14 +174,14 @@ const Home: React.FC = () => {
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="relative z-10 max-w-7xl mx-auto px-6 text-center"
+          className="relative z-10 w-full px-6 text-center"
         >
           <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
             <span className="bg-gradient-to-r from-pink-400 via-purple-400 to-indigo-400 bg-clip-text text-transparent">
               Design Your Signature Style
             </span>
           </h1>
-          <p className="text-xl md:text-2xl text-gray-200 mb-10 max-w-4xl mx-auto">
+          <p className="text-xl md:text-2xl text-gray-200 mb-10 w-full">
             Create stunning custom apparel with our professional design tools. Perfect for fashion brands, artists, and anyone who loves unique style.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
@@ -205,7 +205,7 @@ const Home: React.FC = () => {
 
       {/* Brands Section */}
       <section className="py-12 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-6">
+        <div className="w-full px-6">
           <p className="text-center text-gray-500 mb-8">Trusted by leading brands worldwide</p>
           <div className="flex flex-wrap justify-center items-center gap-12 opacity-70">
             {['Nike', 'Adidas', 'Supreme', 'Gucci', 'Puma', 'Levi\'s'].map((brand, index) => (
@@ -226,14 +226,14 @@ const Home: React.FC = () => {
 
       {/* Featured Designs */}
       <section className="py-20">
-        <div className="max-w-7xl mx-auto px-6">
+        <div className="w-full px-6">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
               <span className="bg-gradient-to-r from-indigo-600 to-pink-500 bg-clip-text text-transparent">
                 Trending Designs
               </span>
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-xl text-gray-600 w-full">
               Discover our most popular designs created by talented artists worldwide
             </p>
           </div>
@@ -391,7 +391,7 @@ const Home: React.FC = () => {
 
       {/* Design Studio Preview */}
       <section className="py-20 bg-gradient-to-br from-gray-900 to-gray-800 text-white">
-        <div className="max-w-7xl mx-auto px-6">
+        <div className="w-full px-6">
           <div className="flex flex-col lg:flex-row items-center gap-12">
             <motion.div
               initial={{ opacity: 0, x: -50 }}
@@ -466,7 +466,7 @@ const Home: React.FC = () => {
 
       {/* Features Section */}
       <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-6">
+        <div className="w-full px-6">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -479,7 +479,7 @@ const Home: React.FC = () => {
                 Why Choose Ryvona?
               </span>
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-xl text-gray-600 w-full">
               We combine cutting-edge technology with premium materials to deliver exceptional products
             </p>
           </motion.div>
@@ -544,7 +544,7 @@ const Home: React.FC = () => {
 
       {/* Testimonials */}
       <section className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-6">
+        <div className="w-full px-6">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -557,7 +557,7 @@ const Home: React.FC = () => {
                 What Our Customers Say
               </span>
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-xl text-gray-600 w-full">
               Join thousands of satisfied customers who trust our platform
             </p>
           </motion.div>
@@ -584,7 +584,7 @@ const Home: React.FC = () => {
             >
               {testimonials.map((testimonial) => (
                 <SwiperSlide key={testimonial.id}>
-                  <div className="bg-white rounded-2xl shadow-lg p-8 max-w-3xl mx-auto">
+                  <div className="bg-white rounded-2xl shadow-lg p-8 w-full">
                     <div className="flex items-center mb-6">
                       <img 
                         src={testimonial.avatar} 
@@ -612,7 +612,7 @@ const Home: React.FC = () => {
 
       {/* Stats Section */}
       <section ref={ref} className="py-20 bg-gradient-to-br from-indigo-600 to-purple-600 text-white">
-        <div className="max-w-7xl mx-auto px-6">
+        <div className="w-full px-6">
           <motion.div
             initial="hidden"
             animate={controls}
@@ -642,7 +642,7 @@ const Home: React.FC = () => {
 
       {/* CTA Section */}
       <section className="py-20 bg-white">
-        <div className="max-w-4xl mx-auto px-6 text-center">
+        <div className="w-full px-6 text-center">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -652,7 +652,7 @@ const Home: React.FC = () => {
             <h2 className="text-3xl md:text-4xl font-bold mb-6">
               Ready to Create Something Amazing?
             </h2>
-            <p className="text-xl text-gray-600 mb-10 max-w-3xl mx-auto">
+            <p className="text-xl text-gray-600 mb-10 w-full">
               Join our community of designers and start bringing your creative visions to life today.
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
@@ -675,7 +675,7 @@ const Home: React.FC = () => {
 
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-12">
-        <div className="max-w-7xl mx-auto px-4">
+        <div className="w-full px-4">
           <div className="flex flex-col md:flex-row justify-between">
             {/* Branding */}
             <div className="mb-8 md:mb-0">
@@ -683,7 +683,7 @@ const Home: React.FC = () => {
                 <FaTshirt className="text-2xl text-indigo-400 mr-2" />
                 <span className="text-xl font-bold">RyVona</span>
               </Link>
-              <p className="text-gray-400 mt-2 max-w-xs">
+              <p className="text-gray-400 mt-2 w-full">
                 Creative design and printing solutions
               </p>
             </div>

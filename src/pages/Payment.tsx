@@ -27,12 +27,33 @@ const Payment: React.FC = () => {
 
   const [errors, setErrors] = useState<Partial<PaymentInfo>>({});
   const [isProcessing, setIsProcessing] = useState(false);
+  const [userInfo, setUserInfo] = useState<{ role: string; country: string } | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!isAuthenticated) {
       navigate('/login', { state: { from: '/payment' } });
       return;
     }
+
+    // Fetch user info first
+    const fetchUserInfo = async () => {
+      try {
+        const userResult = await apiService.getUserInfo();
+        if (userResult.success && userResult.user) {
+          setUserInfo({
+            role: userResult.user.role,
+            country: userResult.user.country || ''
+          });
+        }
+      } catch (err) {
+        console.error('Error fetching user info:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserInfo();
 
     // Generate order ID
     const orderId = `ORD_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -103,8 +124,67 @@ const Payment: React.FC = () => {
     }
   };
 
+  const handleDirectSubmission = async () => {
+    setIsProcessing(true);
+    
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('Please log in to submit orders.');
+        return;
+      }
+
+      // Convert price to TND if user is Tunisian
+      const isTunisian = userInfo?.country?.toLowerCase() === 'tunisia';
+      let totalPrice = formData.price;
+      
+      if (isTunisian) {
+        totalPrice = totalPrice * 3.3; // EUR to TND conversion rate
+      }
+
+      const response = await fetch('/api/submit-order-for-admin.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        credentials: 'include',
+        body: JSON.stringify({ 
+          order_id: formData.order_id,
+          service: formData.service,
+          total_price: totalPrice,
+          currency: isTunisian ? 'TND' : 'EUR',
+          quantity: 1
+        })
+      });
+      
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.message || 'Failed to submit order');
+      }
+      
+      if (result.success) {
+        alert('Order submitted successfully! You will be notified when it is approved.');
+        navigate('/orders');
+      } else {
+        throw new Error(result.message || 'Failed to submit order');
+      }
+    } catch (error) {
+      console.error('Error submitting order:', error);
+      alert(`Failed to submit order: ${(error as Error).message}`);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Check if user is Tunisian and bypass payment
+    if (userInfo?.role === 'user' && userInfo?.country?.toLowerCase() === 'tunisia') {
+      await handleDirectSubmission();
+      return;
+    }
     
     if (!validateForm()) {
       return;
@@ -145,9 +225,81 @@ const Payment: React.FC = () => {
     return null;
   }
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 pt-16 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading payment information...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show special interface for Tunisian users
+  if (userInfo?.role === 'user' && userInfo?.country?.toLowerCase() === 'tunisia') {
+    const convertedPrice = formData.price * 3.3;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 pt-16">
+        <div className="w-full px-4 py-8">
+          <div className="bg-white rounded-2xl shadow-xl p-8">
+            <div className="text-center mb-8">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <CheckCircle className="w-8 h-8 text-green-600" />
+              </div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">🇹🇳 Tunisian User</h1>
+              <p className="text-gray-600">Your order will be submitted directly to admin for review</p>
+            </div>
+
+            <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-8">
+              <h3 className="text-lg font-semibold text-green-800 mb-4">Order Summary</h3>
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Service:</span>
+                  <span className="font-medium">{formData.service}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Original Price:</span>
+                  <span className="font-medium">€{formData.price.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Converted Price:</span>
+                  <span className="font-medium text-green-600">د.ت{convertedPrice.toFixed(2)}</span>
+                </div>
+                <div className="border-t pt-2 mt-4">
+                  <div className="flex justify-between text-lg font-bold">
+                    <span>Total Amount:</span>
+                    <span className="text-green-600">د.ت{convertedPrice.toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="text-center">
+              <button
+                onClick={handleDirectSubmission}
+                disabled={isProcessing}
+                className={`w-full py-4 px-6 rounded-lg font-semibold text-lg transition-colors ${
+                  isProcessing
+                    ? 'bg-gray-400 cursor-not-allowed text-white'
+                    : 'bg-green-600 hover:bg-green-700 text-white'
+                }`}
+              >
+                {isProcessing ? 'Submitting Order...' : '📩 Submit Order to Admin'}
+              </button>
+              <p className="text-sm text-gray-500 mt-4">
+                No payment required. You will be notified when your order is approved.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 pt-16">
-      <div className="container mx-auto px-4 py-8 mt-24">
+      <div className="w-full px-4 py-8 mt-24">
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Complete Your Payment</h1>

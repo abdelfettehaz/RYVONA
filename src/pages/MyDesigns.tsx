@@ -62,7 +62,7 @@ const EmptyState = () => (
     <h3 className="text-3xl font-bold mb-3 bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
       No Designs Yet
     </h3>
-    <p className="text-gray-600 mb-6 max-w-md mx-auto">
+    <p className="text-gray-600 mb-6 w-full">
       Your creative journey begins here! Design your custom T-shirt in our studio.
     </p>
     <Link 
@@ -527,7 +527,7 @@ const MyDesigns: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 pb-20 font-sans mt-24">
+    <div className="w-full px-4 sm:px-6 pb-20 font-sans mt-24">
       <ToastContainer 
         position="top-right" 
         autoClose={3000} 
@@ -552,12 +552,12 @@ const MyDesigns: React.FC = () => {
           <motion.div
             animate={{ rotate: [0, 5, -5, 0] }}
             transition={{ repeat: Infinity, repeatType: "mirror", duration: 6 }}
-            className="w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center mb-6 mx-auto shadow-lg"
+            className="w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center mb-6 shadow-lg"
           >
             <FaTshirt className="text-white text-4xl" />
           </motion.div>
           <h1 className="text-4xl font-bold mb-4">My Designs</h1>
-          <p className="text-xl opacity-90 max-w-2xl mx-auto">
+          <p className="text-xl opacity-90 w-full">
             {selectedCustom.length > 0 
               ? `${selectedCustom.length} custom design${selectedCustom.length > 1 ? 's' : ''} selected for combining` 
               : 'Create, combine, and manage your custom Ryvonas'}

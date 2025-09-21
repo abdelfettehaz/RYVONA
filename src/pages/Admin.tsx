@@ -281,7 +281,7 @@ const Admin: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 pt-16">
       {/* Header */}
       <section className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
@@ -294,7 +294,7 @@ const Admin: React.FC = () => {
 
       {/* Navigation Tabs */}
       <section className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full px-4 sm:px-6 lg:px-8">
           <nav className="flex space-x-8">
             {[
               { id: 'dashboard', label: 'Dashboard', icon: TrendingUp },
@@ -320,7 +320,7 @@ const Admin: React.FC = () => {
         </div>
       </section>
 
-      <div className="container mx-auto px-4 py-8 mt-24">
+      <div className="w-full px-4 py-8 mt-24">
         {selectedTab === 'dashboard' && (
           <div className="space-y-8">
             {/* Advanced Analytics Section */}

@@ -62,7 +62,7 @@ const App: React.FC = () => {
     <Router>
       <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-indigo-100">
         <Navbar />
-        <main className="flex-grow container mx-auto px-4 py-8 mt-16">
+        <main className="flex-grow w-full px-4 py-8 mt-16">
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<Home />} />

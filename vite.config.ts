@@ -27,38 +27,6 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: true,
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          // Vendor chunks
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'ui-vendor': ['framer-motion', 'react-icons', 'lucide-react'],
-          'canvas-vendor': ['fabric', 'html2canvas'],
-          'pdf-vendor': ['jspdf'],
-          'color-vendor': ['react-color'],
-          // Page chunks
-          'pages-admin': [
-            './src/pages/Admin.tsx',
-            './src/pages/AdminDashboard.tsx',
-            './src/pages/AdminChat.tsx',
-            './src/pages/OrderAdmin.tsx'
-          ],
-          'pages-design': [
-            './src/pages/DesignStudio.tsx',
-            './src/pages/MyDesigns.tsx',
-            './src/pages/Gallery.tsx',
-            './src/pages/Templates.tsx'
-          ],
-          'pages-user': [
-            './src/pages/Login.tsx',
-            './src/pages/SignUp.tsx',
-            './src/pages/Profile.tsx',
-            './src/pages/Orders.tsx'
-          ]
-        }
-      }
-    },
-    chunkSizeWarningLimit: 1000
+    sourcemap: true
   }
 }) 

@@ -5,13 +5,11 @@ import {
   FaTshirt, FaPalette, FaEye, FaFont, FaImage, FaSave, 
   FaUndo, FaRedo, FaTrash, FaCloudUploadAlt,
   FaBold, FaItalic, FaUnderline, FaAlignLeft,
-  FaAlignCenter, FaAlignRight, FaPlus, FaExpand, FaCompress, FaMagic,
-  FaRuler
+  FaAlignCenter, FaAlignRight, FaExpand, FaCompress, FaMagic
 } from 'react-icons/fa';
 import { FiMinus, FiPlus } from 'react-icons/fi';
 import { ChromePicker } from 'react-color';
 import { apiService } from '../services/api';
-
 
 interface DesignState {
   product: string;
@@ -102,7 +100,6 @@ const DesignStudio: React.FC = () => {
   const [dragOffset, setDragOffset] = useState<{ x: number; y: number } | null>(null);
   const [products, setProducts] = useState<string[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
-  const [isDarkTheme] = useState(false);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -202,7 +199,6 @@ const DesignStudio: React.FC = () => {
     { name: 'forest green', hex: '#228b22' }
   ];
 
-
   const sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
   const views = ['front', 'back', 'left', 'right'];
   const FONT_FAMILIES = ['Arial', 'Verdana', 'Helvetica', 'Times New Roman', 'Courier New', 'Impact', 'Comic Sans MS', 'Georgia', 'Palatino'];
@@ -243,7 +239,6 @@ const DesignStudio: React.FC = () => {
       setActiveText({ ...activeText, [property]: value });
     }
   };
-
 
   useEffect(() => {
     const handleGlobalMouseMove = (e: MouseEvent) => {
@@ -414,7 +409,7 @@ const DesignStudio: React.FC = () => {
     };
   }, [draggingId, resizingId, resizeDir, rotatingId, containerSize.width, containerSize.height]);
 
-  // useEffect for preview rendering only
+  // useEffect for preview rendering - matches save function exactly
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -429,158 +424,266 @@ const DesignStudio: React.FC = () => {
     const baseImage = new Image();
     const imagePath = getProductImage(designState.product, designState.color, designState.view);
     baseImage.onload = () => {
+      // Draw base product image
       ctx.drawImage(baseImage, 0, 0, canvas.width, canvas.height);
+      
+      // Draw all image overlays with EXACT positioning (same as save function)
+      overlayImages.forEach(img => {
+        const image = new Image();
+        image.onload = () => {
+          ctx.save();
+          ctx.globalAlpha = img.opacity;
+          
+          // Calculate the exact center point for rotation
+          const centerX = img.x + img.width / 2;
+          const centerY = img.y + img.height / 2;
+          
+          // Move to the center point where we want to rotate
+          ctx.translate(centerX, centerY);
+          
+          // Rotate around the center
+          ctx.rotate((img.rotation * Math.PI) / 180);
+          
+          // Draw the image with EXACT positioning and sizing
+          ctx.drawImage(
+            image,
+            -img.width / 2,  // x offset to center
+            -img.height / 2, // y offset to center
+            img.width,       // EXACT width
+            img.height       // EXACT height
+          );
+          
+          ctx.restore();
+        };
+        image.src = img.src;
+      });
+      
+      // Draw all text overlays with EXACT positioning (same as save function)
+      textOverlays.forEach(text => {
+        ctx.save();
+        
+        // Set text styles EXACTLY as they appear
+        ctx.font = `${text.fontWeight} ${text.fontStyle} ${text.fontSize}px ${text.fontFamily}`;
+        ctx.fillStyle = text.color;
+        ctx.textAlign = text.textAlign as CanvasTextAlign;
+        ctx.textBaseline = 'middle';
+        
+        // Calculate EXACT text position center
+        const textWidth = text.width || 200;
+        const textHeight = text.height || 50;
+        const centerX = text.x + textWidth / 2;
+        const centerY = text.y + textHeight / 2;
+        
+        // Move to the EXACT center of the text position
+        ctx.translate(centerX, centerY);
+        
+        // Rotate around the center with EXACT rotation
+        ctx.rotate((text.rotation * Math.PI) / 180);
+        
+        // Draw the text with EXACT positioning and formatting
+        const lines = text.content.split('\n');
+        const lineHeight = text.fontSize * 1.2;
+        const startY = -(lines.length - 1) * lineHeight / 2;
+        
+        // Apply text decoration
+        if (text.textDecoration === 'underline') {
+          ctx.strokeStyle = text.color;
+          ctx.lineWidth = Math.max(1, text.fontSize / 20);
+        }
+        
+        lines.forEach((line, i) => {
+          const y = startY + i * lineHeight;
+          
+          // Draw the text
+          ctx.fillText(
+            line,
+            0,
+            y,
+            textWidth // maxWidth for text wrapping
+          );
+          
+          // Draw underline if needed
+          if (text.textDecoration === 'underline') {
+            const textWidth_actual = ctx.measureText(line).width;
+            const underlineY = y + text.fontSize / 4;
+            ctx.beginPath();
+            ctx.moveTo(-textWidth_actual / 2, underlineY);
+            ctx.lineTo(textWidth_actual / 2, underlineY);
+            ctx.stroke();
+          }
+        });
+        
+        ctx.restore();
+      });
     };
     baseImage.src = imagePath;
   }, [designState, textOverlays, overlayImages]);
 
   const handleSaveDesign = async () => {
-  if (!canvasRef.current) return;
-  try {
-    const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = containerSize.width;
-    tempCanvas.height = containerSize.height;
-    const tempCtx = tempCanvas.getContext('2d');
-    if (!tempCtx) return;
+    if (!canvasRef.current) return;
+    try {
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = containerSize.width;
+      tempCanvas.height = containerSize.height;
+      const tempCtx = tempCanvas.getContext('2d');
+      if (!tempCtx) return;
 
-    // Draw base product image
-    const baseImage = new Image();
-    const imagePath = getProductImage(designState.product, designState.color, designState.view);
-    
-    await new Promise<void>((resolve) => {
-      baseImage.onload = () => {
-        tempCtx.drawImage(baseImage, 0, 0, tempCanvas.width, tempCanvas.height);
-        resolve();
-      };
-      baseImage.src = imagePath;
-    });
-
-    // Draw all image overlays with exact positioning (no translation)
-    for (const img of overlayImages) {
+      // Draw base product image
+      const baseImage = new Image();
+      const imagePath = getProductImage(designState.product, designState.color, designState.view);
+      
       await new Promise<void>((resolve) => {
-        const image = new Image();
-        image.onload = () => {
-          tempCtx.save();
-          tempCtx.globalAlpha = img.opacity;
-          
-          // Move to the center of the image position
-          const centerX = img.x + 1.35*img.width;
-          const centerY = img.y + 0.82*img.height;
-          
-          // Move to the center point where we want to rotate
-          tempCtx.translate(centerX, centerY);
-          
-          // Rotate around the center
-          tempCtx.rotate((img.rotation * Math.PI) / 180);
-          
-          // Draw the image centered at the rotation point
-          tempCtx.drawImage(
-            image,
-            -1.1*img.width,  // x offset to center
-            -img.height/1.53, // y offset to center
-            1.1*img.width,
-            img.height/1.53
-          );
-          
-          tempCtx.restore();
+        baseImage.onload = () => {
+          tempCtx.drawImage(baseImage, 0, 0, tempCanvas.width, tempCanvas.height);
           resolve();
         };
-        image.src = img.src;
+        baseImage.src = imagePath;
       });
-    }
 
-    // Draw all text overlays with proper positioning and rotation
-    textOverlays.forEach(text => {
-      tempCtx.save();
-      
-      // Set text styles
-      tempCtx.font = `${text.fontWeight} ${text.fontStyle} ${text.fontSize}px ${text.fontFamily}`;
-      tempCtx.fillStyle = text.color;
-      tempCtx.textAlign = 'center'; // Center alignment works better with rotation
-      tempCtx.textBaseline = 'middle'; // Middle baseline works better with rotation
-      
-      // Calculate text position center
-      const textWidth = text.width || 200;
-      const textHeight = text.height || 50;
-      const centerX = text.x + 2.15*textWidth;
-      const centerY = text.y + 0.5*textHeight;
-      
-      // Move to the center of the text position
-      tempCtx.translate(centerX, centerY);
-      
-      // Rotate around the center
-      tempCtx.rotate((text.rotation * Math.PI) / 180);
-      
-      // Draw the text centered at the rotation point
-      // We need to measure the text to handle wrapping properly
-      const lines = text.content.split('\n');
-      const lineHeight = text.fontSize * 1.2;
-      const startY = -(lines.length - 1) * lineHeight / 2;
-      
-      lines.forEach((line, i) => {
-        tempCtx.fillText(
-          line,
-          0,
-          startY + i * lineHeight,
-          textWidth // maxWidth for text wrapping
-        );
-      });
-      
-      tempCtx.restore();
-    });
-
-    // Convert to data URL
-    const imageData = tempCanvas.toDataURL('image/png', 1.0);
-    
-    // Create payload
-    const payload = {
-      image: imageData,
-      product: designState.product,
-      color: designState.color,
-      view: designState.view,
-      size: designState.size,
-      overlays: {
-        images: overlayImages.map(img => ({
-          src: img.src,
-          x: img.x,
-          y: img.y,
-          width: img.width,
-          height: img.height,
-          rotation: img.rotation,
-          opacity: img.opacity
-        })),
-        texts: textOverlays.map(text => ({
-          content: text.content,
-          x: text.x,
-          y: text.y,
-          width: text.width,
-          height: text.height,
-          fontSize: text.fontSize,
-          color: text.color,
-          fontFamily: text.fontFamily,
-          fontWeight: text.fontWeight,
-          fontStyle: text.fontStyle,
-          textDecoration: text.textDecoration,
-          textAlign: text.textAlign,
-          rotation: text.rotation
-        }))
+      // Draw all image overlays with EXACT positioning and sizing
+      for (const img of overlayImages) {
+        await new Promise<void>((resolve) => {
+          const image = new Image();
+          image.onload = () => {
+            tempCtx.save();
+            tempCtx.globalAlpha = img.opacity;
+            
+            // Calculate the exact center point for rotation
+            const centerX = img.x + img.width / 2;
+            const centerY = img.y + img.height / 2;
+            
+            // Move to the center point where we want to rotate
+            tempCtx.translate(centerX, centerY);
+            
+            // Rotate around the center
+            tempCtx.rotate((img.rotation * Math.PI) / 180);
+            
+            // Draw the image with EXACT positioning and sizing
+            tempCtx.drawImage(
+              image,
+              -img.width / 2,  // x offset to center
+              -img.height / 2, // y offset to center
+              img.width,       // EXACT width
+              img.height       // EXACT height
+            );
+            
+            tempCtx.restore();
+            resolve();
+          };
+          image.src = img.src;
+        });
       }
-    };
 
-    // Send to server
-    const response = await apiService.saveDesign(payload);
+      // Draw all text overlays with EXACT positioning, sizing, and formatting
+      textOverlays.forEach(text => {
+        tempCtx.save();
+        
+        // Set text styles EXACTLY as they appear
+        tempCtx.font = `${text.fontWeight} ${text.fontStyle} ${text.fontSize}px ${text.fontFamily}`;
+        tempCtx.fillStyle = text.color;
+        tempCtx.textAlign = text.textAlign as CanvasTextAlign;
+        tempCtx.textBaseline = 'middle';
+        
+        // Calculate EXACT text position center
+        const textWidth = text.width || 200;
+        const textHeight = text.height || 50;
+        const centerX = text.x + textWidth / 2;
+        const centerY = text.y + textHeight / 2;
+        
+        // Move to the EXACT center of the text position
+        tempCtx.translate(centerX, centerY);
+        
+        // Rotate around the center with EXACT rotation
+        tempCtx.rotate((text.rotation * Math.PI) / 180);
+        
+        // Draw the text with EXACT positioning and formatting
+        const lines = text.content.split('\n');
+        const lineHeight = text.fontSize * 1.2;
+        const startY = -(lines.length - 1) * lineHeight / 2;
+        
+        // Apply text decoration
+        if (text.textDecoration === 'underline') {
+          tempCtx.strokeStyle = text.color;
+          tempCtx.lineWidth = Math.max(1, text.fontSize / 20);
+        }
+        
+        lines.forEach((line, i) => {
+          const y = startY + i * lineHeight;
+          
+          // Draw the text
+          tempCtx.fillText(
+            line,
+            0,
+            y,
+            textWidth // maxWidth for text wrapping
+          );
+          
+          // Draw underline if needed
+          if (text.textDecoration === 'underline') {
+            const textWidth_actual = tempCtx.measureText(line).width;
+            const underlineY = y + text.fontSize / 4;
+            tempCtx.beginPath();
+            tempCtx.moveTo(-textWidth_actual / 2, underlineY);
+            tempCtx.lineTo(textWidth_actual / 2, underlineY);
+            tempCtx.stroke();
+          }
+        });
+        
+        tempCtx.restore();
+      });
 
-    if (response.success) {
-      alert('Design saved successfully!');
-      navigate('/my-designs');
-    } else {
-      alert('Failed to save design: ' + (response.message || 'Unknown error'));
+      // Convert to high-quality data URL
+      const imageData = tempCanvas.toDataURL('image/png', 1.0);
+      
+      // Create payload with EXACT overlay data
+      const payload = {
+        image: imageData,
+        product: designState.product,
+        color: designState.color,
+        view: designState.view,
+        size: designState.size,
+        overlays: {
+          images: overlayImages.map(img => ({
+            src: img.src,
+            x: img.x,           // EXACT x position
+            y: img.y,           // EXACT y position
+            width: img.width,   // EXACT width
+            height: img.height, // EXACT height
+            rotation: img.rotation, // EXACT rotation
+            opacity: img.opacity    // EXACT opacity
+          })),
+          texts: textOverlays.map(text => ({
+            content: text.content,
+            x: text.x,              // EXACT x position
+            y: text.y,              // EXACT y position
+            width: text.width,      // EXACT width
+            height: text.height,    // EXACT height
+            fontSize: text.fontSize, // EXACT font size
+            color: text.color,
+            fontFamily: text.fontFamily,
+            fontWeight: text.fontWeight,
+            fontStyle: text.fontStyle,
+            textDecoration: text.textDecoration,
+            textAlign: text.textAlign,
+            rotation: text.rotation // EXACT rotation
+          }))
+        }
+      };
+
+      // Send to server
+      const response = await apiService.saveDesign(payload);
+
+      if (response.success) {
+        alert('Design saved successfully with exact positioning!');
+        navigate('/my-designs');
+      } else {
+        alert('Failed to save design: ' + (response.message || 'Unknown error'));
+      }
+    } catch (err) {
+      console.error('Error saving design:', err);
+      alert('Error saving design: ' + (err instanceof Error ? err.message : String(err)));
     }
-  } catch (err) {
-    console.error('Error saving design:', err);
-    alert('Error saving design: ' + (err instanceof Error ? err.message : String(err)));
-  }
-};
+  };
 
   // Drag and drop handlers for image upload
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
@@ -741,13 +844,6 @@ const DesignStudio: React.FC = () => {
               setActiveText(null);
             }}
           >
-            <img
-              src={img.src}
-              alt="uploaded"
-              style={{ width: '100%', height: '100%', objectFit: 'contain', pointerEvents: 'none', userSelect: 'none' }}
-              draggable={false}
-            />
-            
             {isActive && (
               <>
                 {/* Resize handles */}
@@ -1157,9 +1253,7 @@ const DesignStudio: React.FC = () => {
                   onClick={(e) => {
                     e.stopPropagation();
                     setTextOverlays(prev => prev.filter(text => text.id !== t.id));
-                    if (activeText?.id === t.id) {
-                      setActiveText(null);
-                    }
+                    if (activeText?.id === t.id) setActiveText(null);
                   }}
                 >
                   ×
@@ -1171,64 +1265,55 @@ const DesignStudio: React.FC = () => {
       })}
     </>
   );
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
-      <div className="max-w-7xl mx-auto px-4 py-8 mt-24">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-1">
-            <div className={`rounded-xl shadow-lg p-6 sticky top-24 ${isDarkTheme ? 'bg-gray-800' : 'bg-white'}`}>
-              <div className="mb-6">
-                <h5 className="text-lg font-semibold mb-3 flex items-center">
-                  <FaTshirt className={`mr-2 ${isDarkTheme ? 'text-blue-400' : 'text-blue-600'}`} /> 
-                  Product Type
-                </h5>
-                {loadingProducts ? (
-                  <div className="flex justify-center py-4">
-                    <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-blue-500"></div>
-                    <span className="ml-2">Loading products...</span>
-                  </div>
-                ) : products.length > 0 ? (
-                  <div 
-                    className="flex flex-wrap gap-2 max-h-40 overflow-y-auto p-1" 
-                    style={{
-                      scrollbarWidth: 'thin',
-                      scrollbarColor: `${isDarkTheme ? '#3b82f6 #4b5563' : '#3b82f6 #e5e7eb'}`,
-                    }}
-                  >
-                    {products.map(product => (
-                      <button
-                        key={product}
-                        onClick={() => setDesignState({...designState, product})}
-                        className={`px-3 py-2 rounded-md transition-all flex-shrink-0 ${
-                          designState.product === product 
-                            ? 'bg-blue-600 text-white border-blue-600 shadow-md' 
-                            : `${isDarkTheme ? 'bg-gray-700 border-gray-600 hover:bg-gray-600' : 'border-gray-300 hover:bg-gray-100'}`
-                        }`}
-                      >
-                        {product}
-                      </button>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-2 text-gray-500">
-                    No in-stock products available
-                  </div>
-                )}
+    <div className="min-h-screen bg-gray-50 p-4">
+      <div className="w-full">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold text-gray-800">Design Studio</h1>
+          <button
+            onClick={handleSaveDesign}
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+          >
+            <FaSave /> Save Design
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Left Sidebar - Design Controls */}
+          <div className="lg:col-span-1 bg-white p-4 rounded-lg shadow">
+            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+              <FaPalette className="text-blue-600" /> Design Options
+            </h2>
+            
+            <div className="space-y-4">
+              {/* Product Selection */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Product</label>
+                <select
+                  value={designState.product}
+                  onChange={(e) => setDesignState({ ...designState, product: e.target.value })}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  {loadingProducts ? (
+                    <option>Loading products...</option>
+                  ) : (
+                    products.map(product => (
+                      <option key={product} value={product}>{product}</option>
+                    ))
+                  )}
+                </select>
               </div>
               
-              <div className="mb-6">
-                <h5 className="text-lg font-semibold mb-3 flex items-center">
-                  <FaPalette className={`mr-2 ${isDarkTheme ? 'text-blue-400' : 'text-blue-600'}`} /> 
-                  Colors
-                </h5>
+              {/* Color Selection */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Color</label>
                 <div className="flex flex-wrap gap-2">
                   {colors.map(color => (
                     <button
                       key={color.name}
-                      onClick={() => setDesignState({...designState, color: color.name})}
-                      className={`w-8 h-8 rounded-full border-2 transition-transform ${designState.color === color.name 
-                        ? 'border-blue-500 scale-110 shadow-md' 
-                        : `${isDarkTheme ? 'border-gray-600 hover:scale-105' : 'border-gray-300 hover:scale-105'}`}`}
+                      onClick={() => setDesignState({ ...designState, color: color.name })}
+                      className={`w-8 h-8 rounded-full border-2 ${designState.color === color.name ? 'border-blue-500' : 'border-gray-300'}`}
                       style={{ backgroundColor: color.hex }}
                       title={color.name}
                     />
@@ -1236,19 +1321,15 @@ const DesignStudio: React.FC = () => {
                 </div>
               </div>
               
-              <div className="mb-6">
-                <h5 className="text-lg font-semibold mb-3 flex items-center">
-                  <FaRuler className={`mr-2 ${isDarkTheme ? 'text-blue-400' : 'text-blue-600'}`} /> 
-                  Size
-                </h5>
+              {/* Size Selection */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Size</label>
                 <div className="flex flex-wrap gap-2">
                   {sizes.map(size => (
                     <button
                       key={size}
-                      onClick={() => setDesignState({...designState, size})}
-                      className={`px-3 py-2 rounded-md transition-all ${designState.size === size 
-                        ? 'bg-blue-600 text-white border-blue-600 shadow-md' 
-                        : `${isDarkTheme ? 'bg-gray-700 border-gray-600 hover:bg-gray-600' : 'border-gray-300 hover:bg-gray-100'}`}`}
+                      onClick={() => setDesignState({ ...designState, size })}
+                      className={`px-3 py-1 rounded-md ${designState.size === size ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
                     >
                       {size}
                     </button>
@@ -1256,281 +1337,400 @@ const DesignStudio: React.FC = () => {
                 </div>
               </div>
               
-              <div className="mb-6">
-                <h5 className="text-lg font-semibold mb-3 flex items-center">
-                  <FaEye className={`mr-2 ${isDarkTheme ? 'text-blue-400' : 'text-blue-600'}`} /> 
-                  View Angle
-                </h5>
+              {/* View Selection */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">View</label>
                 <div className="flex flex-wrap gap-2">
                   {views.map(view => (
                     <button
                       key={view}
-                      onClick={() => setDesignState({...designState, view})}
-                      className={`px-3 py-2 rounded-md flex items-center transition-all ${designState.view === view 
-                        ? 'bg-orange-500 text-white border-orange-500 shadow-md' 
-                        : `${isDarkTheme ? 'bg-gray-700 border-gray-600 hover:bg-gray-600' : 'border-gray-300 hover:bg-gray-100'}`}`}
+                      onClick={() => setDesignState({ ...designState, view })}
+                      className={`px-3 py-1 rounded-md flex items-center gap-1 ${designState.view === view ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
                     >
-                      <FaTshirt className="mr-2" /> 
-                      {view.charAt(0).toUpperCase() + view.slice(1)}
+                      <FaEye /> {view.charAt(0).toUpperCase() + view.slice(1)}
                     </button>
                   ))}
                 </div>
               </div>
+            </div>
+            
+            {/* Add Text Section */}
+            <div className="mt-6">
+              <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                <FaFont className="text-blue-600" /> Add Text
+              </h2>
               
-              <div className="mb-6">
-                <h5 className="text-lg font-semibold mb-3 flex items-center">
-                  <FaFont className={`mr-2 ${isDarkTheme ? 'text-blue-400' : 'text-blue-600'}`} /> 
-                  Text
-                </h5>
-                <input 
-                  type="text" 
-                  value={newText} 
-                  onChange={e => setNewText(e.target.value)} 
-                  placeholder="Enter your text" 
-                  className={`w-full px-3 py-2 mb-2 rounded-md border ${isDarkTheme ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'}`}
+              <div className="space-y-3">
+                <textarea
+                  value={newText}
+                  onChange={(e) => setNewText(e.target.value)}
+                  placeholder="Enter your text here..."
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  rows={3}
                 />
-                <div className="flex flex-wrap gap-2 mb-2">
-                  <button 
-                    className={`p-2 rounded-md ${activeText?.fontWeight === 'bold' ? 'bg-blue-600 text-white' : isDarkTheme ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'}`}
-                    onClick={() => updateTextStyle(activeText?.id || '', 'fontWeight', activeText?.fontWeight === 'bold' ? 'normal' : 'bold')}
-                    title="Bold"
+                
+                <div className="flex items-center gap-2">
+                  <label className="text-sm font-medium text-gray-700">Size:</label>
+                  <input
+                    type="number"
+                    value={fontSize}
+                    onChange={(e) => setFontSize(Number(e.target.value))}
+                    className="w-16 p-1 border border-gray-300 rounded-md"
+                    min="8"
+                    max="200"
+                  />
+                  
+                  <button
+                    onClick={() => setFontSize(prev => Math.max(8, prev - 2))}
+                    className="p-1 bg-gray-200 rounded-md hover:bg-gray-300"
                   >
-                    <FaBold />
+                    <FiMinus />
                   </button>
-                  <button 
-                    className={`p-2 rounded-md ${activeText?.fontStyle === 'italic' ? 'bg-blue-600 text-white' : isDarkTheme ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'}`}
-                    onClick={() => updateTextStyle(activeText?.id || '', 'fontStyle', activeText?.fontStyle === 'italic' ? 'normal' : 'italic')}
-                    title="Italic"
+                  
+                  <button
+                    onClick={() => setFontSize(prev => Math.min(200, prev + 2))}
+                    className="p-1 bg-gray-200 rounded-md hover:bg-gray-300"
                   >
-                    <FaItalic />
+                    <FiPlus />
                   </button>
-                  <button 
-                    className={`p-2 rounded-md ${activeText?.textDecoration === 'underline' ? 'bg-blue-600 text-white' : isDarkTheme ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'}`}
-                    onClick={() => updateTextStyle(activeText?.id || '', 'textDecoration', activeText?.textDecoration === 'underline' ? 'none' : 'underline')}
-                    title="Underline"
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <label className="text-sm font-medium text-gray-700">Font:</label>
+                  <select
+                    value={fontFamily}
+                    onChange={(e) => setFontFamily(e.target.value)}
+                    className="flex-1 p-1 border border-gray-300 rounded-md"
                   >
-                    <FaUnderline />
-                  </button>
-                  <button 
-                    className={`p-2 rounded-md ${activeText?.textAlign === 'left' ? 'bg-blue-600 text-white' : isDarkTheme ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'}`}
-                    onClick={() => updateTextStyle(activeText?.id || '', 'textAlign', 'left')}
-                    title="Align Left"
-                  >
-                    <FaAlignLeft />
-                  </button>
-                  <button 
-                    className={`p-2 rounded-md ${activeText?.textAlign === 'center' ? 'bg-blue-600 text-white' : isDarkTheme ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'}`}
-                    onClick={() => updateTextStyle(activeText?.id || '', 'textAlign', 'center')}
-                    title="Align Center"
-                  >
-                    <FaAlignCenter />
-                  </button>
-                  <button 
-                    className={`p-2 rounded-md ${activeText?.textAlign === 'right' ? 'bg-blue-600 text-white' : isDarkTheme ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'}`}
-                    onClick={() => updateTextStyle(activeText?.id || '', 'textAlign', 'right')}
-                    title="Align Right"
-                  >
-                    <FaAlignRight />
-                  </button>
+                    {FONT_FAMILIES.map(font => (
+                      <option key={font} value={font}>{font}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <label className="text-sm font-medium text-gray-700">Color:</label>
                   <div className="relative">
-                    <button 
-                      className={`p-2 rounded-md ${isDarkTheme ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'}`}
+                    <button
                       onClick={() => setShowColorPicker(!showColorPicker)}
-                      title="Text Color"
-                    >
-                      <div className="w-4 h-4 rounded-sm" style={{ backgroundColor: activeText?.color || textColor }} />
-                    </button>
+                      className="w-8 h-8 rounded-md border border-gray-300"
+                      style={{ backgroundColor: textColor }}
+                    />
                     {showColorPicker && (
-                      <div className="absolute z-50 mt-2">
+                      <div className="absolute z-10 mt-1">
                         <ChromePicker
-                          color={activeText?.color || textColor}
-                          onChangeComplete={(color: any) => {
-                            if (activeText) {
-                              updateTextStyle(activeText.id, 'color', color.hex);
-                            }
-                            setTextColor(color.hex);
-                          }}
+                          color={textColor}
+                          onChange={(color) => setTextColor(color.hex)}
                         />
                       </div>
                     )}
                   </div>
                 </div>
                 
-                <select
-                  value={fontFamily}
-                  onChange={e => setFontFamily(e.target.value)}
-                  className={`w-full px-3 py-2 mb-2 rounded-md border ${isDarkTheme ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'}`}
-                >
-                  {FONT_FAMILIES.map(font => (
-                    <option key={font} value={font}>{font}</option>
-                  ))}
-                </select>
-                
-                <div className="flex items-center mb-2">
-                  <button 
-                    className={`p-2 rounded-l-md ${isDarkTheme ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'}`}
-                    onClick={() => {
-                      setFontSize(prev => Math.max(8, prev - 2));
-                      if (activeText) {
-                        updateTextStyle(activeText.id, 'fontSize', Math.max(8, activeText.fontSize - 2));
-                      }
-                    }}
-                  >
-                    <FiMinus />
-                  </button>
-                  <div className={`flex-1 text-center px-2 py-1 ${isDarkTheme ? 'bg-gray-700' : 'bg-gray-100'}`}>
-                    {activeText ? activeText.fontSize : fontSize}px
-                  </div>
-                  <button 
-                    className={`p-2 rounded-r-md ${isDarkTheme ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'}`}
-                    onClick={() => {
-                      setFontSize(prev => Math.min(100, prev + 2));
-                      if (activeText) {
-                        updateTextStyle(activeText.id, 'fontSize', Math.min(100, activeText.fontSize + 2));
-                      }
-                    }}
-                  >
-                    <FiPlus />
-                  </button>
-                </div>
-                
-                <button 
-                  className={`w-full px-4 py-2 rounded-md flex items-center justify-center ${isDarkTheme ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
+                <button
                   onClick={addText}
+                  className="w-full py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center justify-center gap-2"
                 >
-                  <FaPlus className="mr-2" />Add Text
+                  <FaFont /> Add Text
                 </button>
               </div>
-              
-              <div className="mb-6">
-                <h5 className="text-lg font-semibold mb-3 flex items-center">
-                  <FaImage className={`mr-2 ${isDarkTheme ? 'text-blue-400' : 'text-blue-600'}`} /> 
-                  Upload Image
-                </h5>
-                <div 
-                  className={`border-2 border-dashed rounded-lg p-6 mb-2 text-center cursor-pointer transition-colors ${isDragActive 
-                    ? 'border-blue-500 bg-blue-50' 
-                    : isDarkTheme ? 'border-gray-600 hover:border-gray-500' : 'border-gray-300 hover:border-gray-400'}`}
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onDrop={handleDrop}
-                >
-                  <label className="cursor-pointer flex flex-col items-center">
-                    <FaCloudUploadAlt className={`text-3xl mb-2 ${isDarkTheme ? 'text-blue-400' : 'text-blue-600'}`} />
-                    <span className={`${isDarkTheme ? 'text-gray-300' : 'text-gray-600'}`}>
-                      Drag & Drop or Click to Upload
-                    </span>
-                    <input 
-                      type="file" 
-                      accept="image/*" 
-                      multiple 
-                      onChange={handleFileInputChange} 
-                      className="hidden" 
+            </div>
+            
+            {/* Text Formatting Options */}
+            {activeText && (
+              <div className="mt-6 p-4 bg-gray-100 rounded-md">
+                <h3 className="font-medium mb-2">Text Formatting</h3>
+                
+                <div className="space-y-3">
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => updateTextStyle(activeText.id, 'fontWeight', activeText.fontWeight === 'bold' ? 'normal' : 'bold')}
+                      className={`p-2 rounded-md ${activeText.fontWeight === 'bold' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
+                    >
+                      <FaBold />
+                    </button>
+                    
+                    <button
+                      onClick={() => updateTextStyle(activeText.id, 'fontStyle', activeText.fontStyle === 'italic' ? 'normal' : 'italic')}
+                      className={`p-2 rounded-md ${activeText.fontStyle === 'italic' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
+                    >
+                      <FaItalic />
+                    </button>
+                    
+                    <button
+                      onClick={() => updateTextStyle(activeText.id, 'textDecoration', activeText.textDecoration === 'underline' ? 'none' : 'underline')}
+                      className={`p-2 rounded-md ${activeText.textDecoration === 'underline' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
+                    >
+                      <FaUnderline />
+                    </button>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => updateTextStyle(activeText.id, 'textAlign', 'left')}
+                      className={`p-2 rounded-md ${activeText.textAlign === 'left' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
+                    >
+                      <FaAlignLeft />
+                    </button>
+                    
+                    <button
+                      onClick={() => updateTextStyle(activeText.id, 'textAlign', 'center')}
+                      className={`p-2 rounded-md ${activeText.textAlign === 'center' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
+                    >
+                      <FaAlignCenter />
+                    </button>
+                    
+                    <button
+                      onClick={() => updateTextStyle(activeText.id, 'textAlign', 'right')}
+                      className={`p-2 rounded-md ${activeText.textAlign === 'right' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
+                    >
+                      <FaAlignRight />
+                    </button>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm font-medium text-gray-700">Size:</label>
+                    <input
+                      type="number"
+                      value={activeText.fontSize}
+                      onChange={(e) => updateTextStyle(activeText.id, 'fontSize', Number(e.target.value))}
+                      className="w-16 p-1 border border-gray-300 rounded-md"
+                      min="8"
+                      max="200"
                     />
-                  </label>
-                </div>
-                <div className="flex gap-2">
-                  <button 
-                    className={`flex-1 px-4 py-2 rounded-md flex items-center justify-center ${isDarkTheme ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
-                    onClick={() => {
-                      const fileInput = document.querySelector('input[type=file]') as HTMLInputElement | null;
-                      fileInput?.click();
-                    }}
-                  >
-                    <FaCloudUploadAlt className="mr-2" />Upload
-                  </button>
-                  <button 
-                    className={`flex-1 px-4 py-2 rounded-md flex items-center justify-center ${isDarkTheme ? 'bg-red-600 hover:bg-red-700' : 'bg-red-600 hover:bg-red-700 text-white'}`}
-                    onClick={() => { setOverlayImages([]); setTextOverlays([]); setActiveText(null); setEditingTextId(null); }}
-                  >
-                    <FaTrash className="mr-2" />Clear
-                  </button>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm font-medium text-gray-700">Color:</label>
+                    <div className="relative">
+                      <button
+                        onClick={() => setShowColorPicker(!showColorPicker)}
+                        className="w-8 h-8 rounded-md border border-gray-300"
+                        style={{ backgroundColor: activeText.color }}
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
+            )}
+            
+            {/* Upload Images Section */}
+            <div className="mt-6">
+              <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                <FaImage className="text-blue-600" /> Upload Images
+              </h2>
               
-              <button 
-                className={`w-full px-4 py-3 rounded-md mb-2 flex items-center justify-center ${isDarkTheme ? 'bg-green-600 hover:bg-green-700' : 'bg-green-600 hover:bg-green-700 text-white'} font-semibold`}
-                onClick={handleSaveDesign}
+              <div
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                className={`border-2 border-dashed rounded-md p-6 text-center ${isDragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300'}`}
               >
-                <FaSave className="mr-2" />Save Design
-              </button>
-              <button 
-                className={`w-full px-4 py-3 rounded-md mb-2 flex items-center justify-center ${isDarkTheme ? 'bg-purple-600 hover:bg-purple-700' : 'bg-purple-600 hover:bg-purple-700 text-white'} font-semibold`}
-                onClick={() => navigate('/ai-generator')}
-              >
-                <FaMagic className="mr-2" />Generate with AI
-              </button>
-              <div className="flex gap-2">
-                <button 
-                  className={`flex-1 px-4 py-2 rounded-md flex items-center justify-center ${isDarkTheme ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'}`}
-                  onClick={() => {/* Undo logic */}}
+                <FaCloudUploadAlt className="mx-auto text-3xl text-gray-400 mb-2" />
+                <p className="text-sm text-gray-600 mb-3">Drag & drop images here or click to browse</p>
+                
+                <input
+                  type="file"
+                  id="image-upload"
+                  multiple
+                  accept="image/*"
+                  onChange={handleFileInputChange}
+                  className="hidden"
+                />
+                
+                <label
+                  htmlFor="image-upload"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer"
                 >
-                  <FaUndo className="mr-2" />Undo
-                </button>
-                <button 
-                  className={`flex-1 px-4 py-2 rounded-md flex items-center justify-center ${isDarkTheme ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'}`}
-                  onClick={() => {/* Redo logic */}}
-                >
-                  <FaRedo className="mr-2" />Redo
-                </button>
+                  Browse Files
+                </label>
               </div>
             </div>
           </div>
           
-          <div className="lg:col-span-2">
-            <div className={`rounded-xl shadow-lg p-6 ${isDarkTheme ? 'bg-gray-800' : 'bg-white'}`}>
-              <div className="flex justify-between items-center mb-6">
-                <h4 className="text-xl font-semibold">Design Preview</h4>
-                <div className="flex items-center space-x-2">
-                  <button 
-                    className={`p-2 rounded-md ${isDarkTheme ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'}`}
-                    onClick={() => setZoom(prev => Math.max(25, prev - 10))}
-                    title="Zoom Out"
-                  >
-                    <FiMinus />
+          {/* Main Canvas Area */}
+          <div className="lg:col-span-2 bg-white p-4 rounded-lg shadow">
+            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+              <FaTshirt className="text-blue-600" /> Design Preview
+            </h2>
+            
+            <div className="flex justify-center mb-4">
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setZoom(prev => Math.max(25, prev - 25))}
+                  className="p-2 bg-gray-200 rounded-md hover:bg-gray-300"
+                  disabled={zoom <= 25}
+                >
+                  <FaCompress />
+                </button>
+                
+                <span className="px-3 py-2 bg-gray-100 rounded-md">{zoom}%</span>
+                
+                <button
+                  onClick={() => setZoom(prev => Math.min(200, prev + 25))}
+                  className="p-2 bg-gray-200 rounded-md hover:bg-gray-300"
+                  disabled={zoom >= 200}
+                >
+                  <FaExpand />
+                </button>
+              </div>
+            </div>
+            
+            <div className="relative border border-gray-300 rounded-md bg-gray-100 flex justify-center items-center p-4 overflow-hidden">
+              <div
+                className="max-w-full"
+                style={{
+                  width: `${containerSize.width * (zoom / 100)}px`,
+                  height: `${containerSize.height * (zoom / 100)}px`,
+                  position: 'relative',
+                  transformOrigin: 'top left'
+                }}
+              >
+                <canvas
+                  ref={canvasRef}
+                  width={containerSize.width}
+                  height={containerSize.height}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    zIndex: 1,
+                    border: '1px solid #ddd'
+                  }}
+                />
+                
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    zIndex: 2,
+                    pointerEvents: 'none'
+                  }}
+                >
+                  {renderImageOverlays()}
+                  {renderTextOverlays()}
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Right Sidebar - Design Tools */}
+          <div className="lg:col-span-1 bg-white p-4 rounded-lg shadow">
+            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+              <FaMagic className="text-blue-600" /> Design Tools
+            </h2>
+            
+            <div className="space-y-4">
+              <div>
+                <h3 className="font-medium mb-2">Layers</h3>
+                <div className="bg-gray-100 rounded-md p-3 max-h-60 overflow-y-auto">
+                  {overlayImages.length === 0 && textOverlays.length === 0 && (
+                    <p className="text-sm text-gray-500 text-center">No layers added yet</p>
+                  )}
+                  
+                  {overlayImages.map(img => (
+                    <div
+                      key={img.id}
+                      className={`p-2 mb-1 rounded-md flex items-center justify-between ${img.selected ? 'bg-blue-100' : 'bg-white'}`}
+                      onClick={() => {
+                        setOverlayImages(prev => prev.map(image => ({ ...image, selected: image.id === img.id })));
+                        setTextOverlays(prev => prev.map(text => ({ ...text, selected: false })));
+                        setActiveText(null);
+                      }}
+                    >
+                      <div className="flex items-center gap-2">
+                        <FaImage className="text-gray-500" />
+                        <span className="text-sm truncate max-w-xs">Image {img.id.slice(0, 4)}</span>
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setOverlayImages(prev => prev.filter(image => image.id !== img.id));
+                        }}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        <FaTrash size={12} />
+                      </button>
+                    </div>
+                  ))}
+                  
+                  {textOverlays.map(text => (
+                    <div
+                      key={text.id}
+                      className={`p-2 mb-1 rounded-md flex items-center justify-between ${text.selected ? 'bg-blue-100' : 'bg-white'}`}
+                      onClick={() => {
+                        setTextOverlays(prev => prev.map(txt => ({ ...txt, selected: txt.id === text.id })));
+                        setOverlayImages(prev => prev.map(img => ({ ...img, selected: false })));
+                        setActiveText(text);
+                      }}
+                    >
+                      <div className="flex items-center gap-2">
+                        <FaFont className="text-gray-500" />
+                        <span className="text-sm truncate max-w-xs">{text.content || 'Text'}</span>
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setTextOverlays(prev => prev.filter(txt => txt.id !== text.id));
+                          if (activeText?.id === text.id) setActiveText(null);
+                        }}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        <FaTrash size={12} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              <div>
+                <h3 className="font-medium mb-2">Actions</h3>
+                <div className="grid grid-cols-2 gap-2">
+                  <button className="p-2 bg-gray-200 rounded-md hover:bg-gray-300 flex items-center justify-center gap-1">
+                    <FaUndo /> Undo
                   </button>
-                  <span className={`px-2 ${isDarkTheme ? 'text-gray-300' : 'text-gray-600'}`}>{zoom}%</span>
-                  <button 
-                    className={`p-2 rounded-md ${isDarkTheme ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'}`}
-                    onClick={() => setZoom(prev => Math.min(200, prev + 10))}
-                    title="Zoom In"
-                  >
-                    <FiPlus />
+                  <button className="p-2 bg-gray-200 rounded-md hover:bg-gray-300 flex items-center justify-center gap-1">
+                    <FaRedo /> Redo
                   </button>
                   <button 
-                    className={`p-2 rounded-md ${isDarkTheme ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'}`}
-                    onClick={() => setZoom(100)}
-                    title="Reset Zoom"
+                    className="p-2 bg-red-100 text-red-700 rounded-md hover:bg-red-200 flex items-center justify-center gap-1 col-span-2"
+                    onClick={() => {
+                      if (window.confirm('Are you sure you want to clear all design elements?')) {
+                        setOverlayImages([]);
+                        setTextOverlays([]);
+                        setActiveText(null);
+                      }
+                    }}
                   >
-                    {zoom === 100 ? <FaExpand /> : <FaCompress />}
+                    <FaTrash /> Clear All
                   </button>
                 </div>
               </div>
               
-              <div className={`rounded-lg p-4 flex justify-center relative min-h-[600px] ${isDarkTheme ? 'bg-gray-900' : 'bg-gray-100'}`}>
-                <div 
-                  style={{ 
-                    width: `${containerSize.width * zoom / 100}px`, 
-                    height: `${containerSize.height * zoom / 100}px`, 
-                    position: 'relative',
-                    transform: `scale(${zoom/100})`,
-                    transformOrigin: 'top left'
-                  }}
-                >
-                  <canvas 
-                    ref={canvasRef} 
-                    width={containerSize.width} 
-                    height={containerSize.height} 
-                    style={{ 
-                      width: '100%', 
-                      height: '100%', 
-                      display: 'block', 
-                      border: isDarkTheme ? '1px solid #4b5563' : '1px solid #d1d5db',
-                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
-                    }} 
-                  />
-                  {renderImageOverlays()}
-                  {renderTextOverlays()}
+              <div>
+                <h3 className="font-medium mb-2">Design Info</h3>
+                <div className="bg-gray-100 rounded-md p-3 text-sm">
+                  <div className="flex justify-between mb-1">
+                    <span>Product:</span>
+                    <span className="font-medium">{designState.product}</span>
+                  </div>
+                  <div className="flex justify-between mb-1">
+                    <span>Color:</span>
+                    <span className="font-medium">{designState.color}</span>
+                  </div>
+                  <div className="flex justify-between mb-1">
+                    <span>Size:</span>
+                    <span className="font-medium">{designState.size}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>View:</span>
+                    <span className="font-medium">{designState.view}</span>
+                  </div>
                 </div>
               </div>
             </div>

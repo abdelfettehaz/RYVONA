@@ -102,7 +102,7 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
+      <div className="w-full space-y-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -114,7 +114,7 @@ const Login = () => {
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-              className="mx-auto h-12 w-12 bg-primary-500 rounded-full flex items-center justify-center mb-4"
+              className="h-12 w-12 bg-primary-500 rounded-full flex items-center justify-center mb-4"
             >
               <Lock className="h-6 w-6 text-white" />
             </motion.div>
