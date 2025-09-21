@@ -3,7 +3,7 @@ import { ImageGenerationResponse, ImageSettings } from '../types/image';
 
 // Initialize Together AI client with API key
 const together = new Together({
-  apiKey: "27c6b0e8ec18c2a66906ca0688c3879b4b6b72bb144454e01f666988b35c87ef"
+  apiKey: import.meta.env.VITE_TOGETHER_API_KEY || "27c6b0e8ec18c2a66906ca0688c3879b4b6b72bb144454e01f666988b35c87ef"
 });
 
 const getAspectRatioDimensions = (aspectRatio: string) => {

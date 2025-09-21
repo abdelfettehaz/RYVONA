@@ -13,7 +13,7 @@ import {
   Category
 } from '../types';
 
-const API_BASE_URL = '/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
 class ApiService {
   private async request<T>(
@@ -39,7 +39,7 @@ class ApiService {
       ...options,
     };
 
-    console.log(`API Request to ${endpoint}:`, {
+    console.log(`API Request to ${API_BASE_URL}${endpoint}:`, {
       method: config.method || 'GET',
       headers: config.headers,
       body: config.body

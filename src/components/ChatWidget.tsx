@@ -5,9 +5,9 @@ import React, { useState, useRef, useEffect } from 'react';
 
 
 // WARNING: Never expose your real API key in production!
-const OPENROUTER_API_KEY = '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';
+const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || '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';
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
-const MODEL = 'deepseek/deepseek-chat-v3.1:free';
+const MODEL = import.meta.env.VITE_OPENROUTER_MODEL || 'deepseek/deepseek-chat-v3.1:free';
 
 interface Message {
   sender: 'user' | 'bot';
