@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: tshirt_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: tshirt_designer
+      MYSQL_USER: tshirt_user
+      MYSQL_PASSWORD: tshirt_pass
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./database/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql
+    networks:
+      - tshirt_network
+
+  # PHP Apache Server
+  php-apache:
+    image: php:8.1-apache
+    container_name: tshirt_php
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - ./api:/var/www/html/api
+      - ./config.php:/var/www/html/config.php
+      - ./saved_designs:/var/www/html/saved_designs
+      - ./uploaded_templates:/var/www/html/uploaded_templates
+      - ./chat_images:/var/www/html/chat_images
+      - ./mailer:/var/www/html/mailer
+      - ./backend:/var/www/html/backend
+    depends_on:
+      - mysql
+    networks:
+      - tshirt_network
+    command: >
+      bash -c "
+      docker-php-ext-install pdo pdo_mysql mysqli &&
+      a2enmod rewrite &&
+      apache2-foreground
+      "
+
+  # Node.js Frontend (Vite)
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: tshirt_frontend
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./src:/app/src
+      - ./public:/app/public
+      - ./index.html:/app/index.html
+      - ./vite.config.ts:/app/vite.config.ts
+      - ./package.json:/app/package.json
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8080/api
+    networks:
+      - tshirt_network
+
+volumes:
+  mysql_data:
+
+networks:
+  tshirt_network:
+    driver: bridge

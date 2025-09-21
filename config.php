@@ -1,9 +1,9 @@
 <?php
 // Database configuration
-$host = "localhost";
+$host = getenv('DB_HOST') ?: "mysql";
 $dbname = "tshirt_designer";
-$username = "root";
-$password = "";
+$username = getenv('DB_USER') ?: "tshirt_user";
+$password = getenv('DB_PASS') ?: "tshirt_pass";
 
 try {
     // First connect without database to create it if needed
