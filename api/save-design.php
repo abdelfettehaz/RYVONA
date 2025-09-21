@@ -1,5 +1,5 @@
 <?php
-header('Content-Type: application/json');
+require_once 'cors.php';
 require_once '../config.php';
 session_start();
 

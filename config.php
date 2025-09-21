@@ -1,9 +1,9 @@
 <?php
 // Database configuration
-$host = getenv('DB_HOST') ?: "mysql";
+$host = getenv('DB_HOST') ?: "localhost";
 $dbname = "tshirt_designer";
-$username = getenv('DB_USER') ?: "tshirt_user";
-$password = getenv('DB_PASS') ?: "tshirt_pass";
+$username = getenv('DB_USER') ?: "root";
+$password = getenv('DB_PASS') ?: "";
 
 try {
     // First connect without database to create it if needed
@@ -25,8 +25,8 @@ try {
         firstname VARCHAR(50),
         lastname VARCHAR(50),
         phone VARCHAR(20) DEFAULT NULL,
-        country VARCHAR(50)DEFAULT NULL,
-        city VARCHAR(50)DEFAULT NULL,
+        country VARCHAR(50) DEFAULT NULL,
+        city VARCHAR(50) DEFAULT NULL,
         address TEXT DEFAULT NULL,
         postal VARCHAR(50) DEFAULT NULL,
         cin integer,    

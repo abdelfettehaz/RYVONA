@@ -102,13 +102,13 @@ const Navbar: React.FC = () => {
         ? 'bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-200' 
         : 'bg-white/80 backdrop-blur-sm'
     }`}>
-      <div className="max-w-7xl mx-auto px-10 sm:px-6 lg:px-8">
+      <div className="w-full px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-17">
           <Link to="/" className="flex items-center">
             <img 
               src="ChatGPT Image Aug 15, 2025, 02_21_38 AM.png"
               alt="RYVONA DESIGN YOUR WAY"
-              className="w-120 h-20 object-contain"
+              className="w-24 h-16 sm:w-32 sm:h-20 object-contain"
             />
           </Link>
 
@@ -171,7 +171,7 @@ const Navbar: React.FC = () => {
                   </button>
 
                   {isNotificationsOpen && (
-                    <div className="navbar-dropdown absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-[100] max-w-[90vw] sm:max-w-none">
+                    <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-[100] max-w-[calc(100vw-2rem)] sm:max-w-none dropdown-menu">
                       <div className="px-4 py-2 border-b border-gray-100 flex justify-between items-center">
                         <h3 className="text-sm font-semibold text-gray-900">Notifications</h3>
                         {notifications.length > 0 && (
@@ -232,7 +232,7 @@ const Navbar: React.FC = () => {
                   </button>
 
                   {isDropdownOpen && (
-                    <div className="navbar-dropdown absolute right-0 mt-2 w-56 sm:w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-[100] max-w-[90vw] sm:max-w-none">
+                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-[100] max-w-[calc(100vw-2rem)] sm:max-w-none dropdown-menu">
                       <div className="px-4 py-3 border-b border-gray-100">
                         <p className="text-sm font-semibold text-gray-900">
                           {user?.firstname} {user?.lastname}
@@ -340,8 +340,7 @@ const Navbar: React.FC = () => {
         </div>
       </div>
       {isMobileMenuOpen && (
-        <div className="lg:hidden">
-          <div className="navbar-dropdown absolute right-0 mt-2 w-56 sm:w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-[100] max-w-[90vw] sm:max-w-none">
+        <div className="md:hidden absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-[100] max-w-[calc(100vw-2rem)] dropdown-menu">
                       <div className="py-1">
                         <Link
                           to="/"
@@ -387,9 +386,8 @@ const Navbar: React.FC = () => {
                         </Link>
 
                       </div>
-          </div>
-        </div>
-      )}
+                    </div>
+                  )}
 
       {(isDropdownOpen || isNotificationsOpen || isMobileMenuOpen) && (
         <div

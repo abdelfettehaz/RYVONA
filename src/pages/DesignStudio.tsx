@@ -100,6 +100,7 @@ const DesignStudio: React.FC = () => {
   const [dragOffset, setDragOffset] = useState<{ x: number; y: number } | null>(null);
   const [products, setProducts] = useState<string[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
+  const [isLowResolution, setIsLowResolution] = useState(false);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -136,7 +137,52 @@ const DesignStudio: React.FC = () => {
     fetchProducts();
   }, []);
 
+  // Detect low resolution devices
+  useEffect(() => {
+    const checkResolution = () => {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      const isLowRes = width <= 480 || height <= 480 || (width * height) < 200000; // Less than 200k pixels
+      setIsLowResolution(isLowRes);
+    };
+
+    checkResolution();
+    window.addEventListener('resize', checkResolution);
+    
+    return () => window.removeEventListener('resize', checkResolution);
+  }, []);
+
   const generateId = () => Math.random().toString(36).substr(2, 9);
+
+  // Helper function to get resize handle styles
+  const getResizeHandleStyle = (position: string) => {
+    // Make handles larger for all devices, especially mobile
+    const baseSize = isLowResolution ? 35 : 20; // Increased from 10/25 to 20/35
+    const offset = isLowResolution ? -17.5 : -10; // Adjusted for new sizes
+    
+    const positions: Record<string, any> = {
+      'se': { right: offset, bottom: offset, cursor: 'nwse-resize' },
+      'sw': { left: offset, bottom: offset, cursor: 'nesw-resize' },
+      'ne': { right: offset, top: offset, cursor: 'nesw-resize' },
+      'nw': { left: offset, top: offset, cursor: 'nwse-resize' },
+      'n': { left: '50%', top: offset, marginLeft: -baseSize/2, cursor: 'ns-resize' },
+      's': { left: '50%', bottom: offset, marginLeft: -baseSize/2, cursor: 'ns-resize' },
+      'w': { left: offset, top: '50%', marginTop: -baseSize/2, cursor: 'ew-resize' },
+      'e': { right: offset, top: '50%', marginTop: -baseSize/2, cursor: 'ew-resize' }
+    };
+
+    return {
+      position: 'absolute' as const,
+      width: baseSize,
+      height: baseSize,
+      backgroundColor: '#3b82f6',
+      zIndex: 101,
+      border: '2px solid #ffffff',
+      boxShadow: '0 0 4px rgba(0, 0, 0, 0.5)',
+      borderRadius: '50%', // Make handles circular for better touch targets
+      ...positions[position]
+    };
+  };
 
   // Helper to get product image path
   function getProductImage(product: string, color: string, view: string): string {
@@ -241,16 +287,30 @@ const DesignStudio: React.FC = () => {
   };
 
   useEffect(() => {
-    const handleGlobalMouseMove = (e: MouseEvent) => {
+    const getClientPos = (e: MouseEvent | TouchEvent) => {
+      if ('touches' in e) {
+        return {
+          clientX: e.touches[0].clientX,
+          clientY: e.touches[0].clientY
+        };
+      }
+      return {
+        clientX: e.clientX,
+        clientY: e.clientY
+      };
+    };
+
+    const handleGlobalMove = (e: MouseEvent | TouchEvent) => {
       if (!overlayContainerRef.current) return;
       
+      const { clientX, clientY } = getClientPos(e);
       const rect = overlayContainerRef.current.getBoundingClientRect();
       const scaleX = containerSize.width / rect.width;
       const scaleY = containerSize.height / rect.height;
       
       if (draggingId) {
-        let x = (e.clientX - rect.left) * scaleX;
-        let y = (e.clientY - rect.top) * scaleY;
+        let x = (clientX - rect.left) * scaleX;
+        let y = (clientY - rect.top) * scaleY;
         if (dragOffset) {
           x -= dragOffset.x;
           y -= dragOffset.y;
@@ -266,8 +326,8 @@ const DesignStudio: React.FC = () => {
       }
       
       if (resizingId && resizeDir) {
-        const mouseX = (e.clientX - rect.left) * scaleX;
-        const mouseY = (e.clientY - rect.top) * scaleY;
+        const mouseX = (clientX - rect.left) * scaleX;
+        const mouseY = (clientY - rect.top) * scaleY;
         
         if (rotatingId) {
           const overlay = overlayImages.find(img => img.id === rotatingId) || 
@@ -345,24 +405,50 @@ const DesignStudio: React.FC = () => {
             let newHeight = text.height || 50;
             let newX = text.x;
             let newY = text.y;
+            
             switch (resizeDir) {
               case 'se':
                 newWidth = Math.max(40, Math.min(1000, mouseX - text.x));
                 newHeight = Math.max(40, Math.min(600, mouseY - text.y));
+                
+                // Maintain aspect ratio for better text scaling
+                const aspectRatio = (text.width || 200) / (text.height || 50);
+                if (Math.abs(aspectRatio - (newWidth / newHeight)) > 0.5) {
+                  // If resizing significantly changes aspect ratio, adjust height to maintain it
+                  newHeight = newWidth / aspectRatio;
+                }
                 break;
               case 'sw':
                 newWidth = Math.max(40, Math.min(1000, text.x + (text.width || 200) - mouseX));
                 newHeight = Math.max(40, Math.min(600, mouseY - text.y));
+                
+                // Maintain aspect ratio
+                const aspectRatioSW = (text.width || 200) / (text.height || 50);
+                if (Math.abs(aspectRatioSW - (newWidth / newHeight)) > 0.5) {
+                  newHeight = newWidth / aspectRatioSW;
+                }
                 newX = mouseX;
                 break;
               case 'ne':
                 newWidth = Math.max(40, Math.min(1000, mouseX - text.x));
                 newHeight = Math.max(40, Math.min(600, text.y + (text.height || 50) - mouseY));
+                
+                // Maintain aspect ratio
+                const aspectRatioNE = (text.width || 200) / (text.height || 50);
+                if (Math.abs(aspectRatioNE - (newWidth / newHeight)) > 0.5) {
+                  newHeight = newWidth / aspectRatioNE;
+                }
                 newY = mouseY;
                 break;
               case 'nw':
                 newWidth = Math.max(40, Math.min(1000, text.x + (text.width || 200) - mouseX));
                 newHeight = Math.max(40, Math.min(600, text.y + (text.height || 50) - mouseY));
+                
+                // Maintain aspect ratio
+                const aspectRatioNW = (text.width || 200) / (text.height || 50);
+                if (Math.abs(aspectRatioNW - (newWidth / newHeight)) > 0.5) {
+                  newHeight = newWidth / aspectRatioNW;
+                }
                 newX = mouseX;
                 newY = mouseY;
                 break;
@@ -381,16 +467,19 @@ const DesignStudio: React.FC = () => {
                 newY = mouseY;
                 break;
             }
+            
             const baseFontSize = text.fontSize || 24;
             const baseHeight = text.height || 50;
-            const newFontSize = Math.max(8, Math.round(baseFontSize * (newHeight / baseHeight)));
+            // Scale font size proportionally to height change
+            const newFontSize = Math.max(8, Math.min(200, Math.round(baseFontSize * (newHeight / baseHeight))));
+            
             return { ...text, x: newX, y: newY, width: newWidth, height: newHeight, fontSize: newFontSize };
           }));
         }
       }
     };
 
-    const handleGlobalMouseUp = () => {
+    const handleGlobalEnd = () => {
       setDraggingId(null);
       setResizingId(null);
       setResizeDir('');
@@ -399,13 +488,17 @@ const DesignStudio: React.FC = () => {
     };
 
     if (draggingId || resizingId || rotatingId) {
-      document.addEventListener('mousemove', handleGlobalMouseMove);
-      document.addEventListener('mouseup', handleGlobalMouseUp);
+      document.addEventListener('mousemove', handleGlobalMove);
+      document.addEventListener('mouseup', handleGlobalEnd);
+      document.addEventListener('touchmove', handleGlobalMove, { passive: false });
+      document.addEventListener('touchend', handleGlobalEnd);
     }
 
     return () => {
-      document.removeEventListener('mousemove', handleGlobalMouseMove);
-      document.removeEventListener('mouseup', handleGlobalMouseUp);
+      document.removeEventListener('mousemove', handleGlobalMove);
+      document.removeEventListener('mouseup', handleGlobalEnd);
+      document.removeEventListener('touchmove', handleGlobalMove);
+      document.removeEventListener('touchend', handleGlobalEnd);
     };
   }, [draggingId, resizingId, resizeDir, rotatingId, containerSize.width, containerSize.height]);
 
@@ -757,7 +850,20 @@ const DesignStudio: React.FC = () => {
     setResizingId(null);
   };
 
-  const handleOverlayMouseDown = (e: React.MouseEvent, id: string) => {
+  const getClientPos = (e: React.MouseEvent | React.TouchEvent) => {
+    if ('touches' in e) {
+      return {
+        clientX: e.touches[0].clientX,
+        clientY: e.touches[0].clientY
+      };
+    }
+    return {
+      clientX: e.clientX,
+      clientY: e.clientY
+    };
+  };
+
+  const handleOverlayStart = (e: React.MouseEvent | React.TouchEvent, id: string) => {
     e.stopPropagation();
     setDraggingId(id);
     setResizingId(null);
@@ -768,8 +874,9 @@ const DesignStudio: React.FC = () => {
     if (overlay) {
       const rect = overlayContainerRef.current?.getBoundingClientRect();
       if (rect) {
-        const mouseX = (e.clientX - rect.left) * (containerSize.width / rect.width);
-        const mouseY = (e.clientY - rect.top) * (containerSize.height / rect.height);
+        const { clientX, clientY } = getClientPos(e);
+        const mouseX = (clientX - rect.left) * (containerSize.width / rect.width);
+        const mouseY = (clientY - rect.top) * (containerSize.height / rect.height);
         setDragOffset({ x: mouseX - overlay.x, y: mouseY - overlay.y });
       }
     }
@@ -785,14 +892,14 @@ const DesignStudio: React.FC = () => {
     }
   };
 
-  const handleResizeMouseDown = (e: React.MouseEvent, id: string, direction: string) => {
+  const handleResizeStart = (e: React.MouseEvent | React.TouchEvent, id: string, direction: string) => {
     e.stopPropagation();
     setResizingId(id);
     setResizeDir(direction);
     setDraggingId(null);
   };
 
-  const handleRotateMouseDown = (e: React.MouseEvent, id: string) => {
+  const handleRotateStart = (e: React.MouseEvent | React.TouchEvent, id: string) => {
     e.stopPropagation();
     setRotatingId(id);
     setResizingId(null);
@@ -836,7 +943,8 @@ const DesignStudio: React.FC = () => {
               background: 'transparent',
               userSelect: 'none',
             }}
-            onMouseDown={e => handleOverlayMouseDown(e, img.id)}
+            onMouseDown={e => handleOverlayStart(e, img.id)}
+            onTouchStart={e => handleOverlayStart(e, img.id)}
             onClick={e => {
               e.stopPropagation();
               setOverlayImages(prev => prev.map(image => ({ ...image, selected: image.id === img.id })));
@@ -848,124 +956,65 @@ const DesignStudio: React.FC = () => {
               <>
                 {/* Resize handles */}
                 <div
-                  style={{
-                    position: 'absolute',
-                    width: 10,
-                    height: 10,
-                    backgroundColor: '#3b82f6',
-                    right: -5,
-                    bottom: -5,
-                    cursor: 'nwse-resize',
-                    zIndex: 101
-                  }}
-                  onMouseDown={e => handleResizeMouseDown(e, img.id, 'se')}
+                  className={`resize-handle ${isLowResolution ? 'low-res-handle' : ''}`}
+                  style={getResizeHandleStyle('se')}
+                  onMouseDown={e => handleResizeStart(e, img.id, 'se')}
+                  onTouchStart={e => handleResizeStart(e, img.id, 'se')}
                 />
                 <div
-                  style={{
-                    position: 'absolute',
-                    width: 10,
-                    height: 10,
-                    backgroundColor: '#3b82f6',
-                    left: -5,
-                    bottom: -5,
-                    cursor: 'nesw-resize',
-                    zIndex: 101
-                  }}
-                  onMouseDown={e => handleResizeMouseDown(e, img.id, 'sw')}
+                  className={`resize-handle ${isLowResolution ? 'low-res-handle' : ''}`}
+                  style={getResizeHandleStyle('sw')}
+                  onMouseDown={e => handleResizeStart(e, img.id, 'sw')}
+                  onTouchStart={e => handleResizeStart(e, img.id, 'sw')}
                 />
                 <div
-                  style={{
-                    position: 'absolute',
-                    width: 10,
-                    height: 10,
-                    backgroundColor: '#3b82f6',
-                    right: -5,
-                    top: -5,
-                    cursor: 'nesw-resize',
-                    zIndex: 101
-                  }}
-                  onMouseDown={e => handleResizeMouseDown(e, img.id, 'ne')}
+                  className={`resize-handle ${isLowResolution ? 'low-res-handle' : ''}`}
+                  style={getResizeHandleStyle('ne')}
+                  onMouseDown={e => handleResizeStart(e, img.id, 'ne')}
+                  onTouchStart={e => handleResizeStart(e, img.id, 'ne')}
                 />
                 <div
-                  style={{
-                    position: 'absolute',
-                    width: 10,
-                    height: 10,
-                    backgroundColor: '#3b82f6',
-                    left: -5,
-                    top: -5,
-                    cursor: 'nwse-resize',
-                    zIndex: 101
-                  }}
-                  onMouseDown={e => handleResizeMouseDown(e, img.id, 'nw')}
+                  className={`resize-handle ${isLowResolution ? 'low-res-handle' : ''}`}
+                  style={getResizeHandleStyle('nw')}
+                  onMouseDown={e => handleResizeStart(e, img.id, 'nw')}
+                  onTouchStart={e => handleResizeStart(e, img.id, 'nw')}
                 />
                 <div
-                  style={{
-                    position: 'absolute',
-                    width: 10,
-                    height: 10,
-                    backgroundColor: '#3b82f6',
-                    left: '50%',
-                    top: -5,
-                    marginLeft: -5,
-                    cursor: 'ns-resize',
-                    zIndex: 101
-                  }}
-                  onMouseDown={e => handleResizeMouseDown(e, img.id, 'n')}
+                  className={`resize-handle ${isLowResolution ? 'low-res-handle' : ''}`}
+                  style={getResizeHandleStyle('n')}
+                  onMouseDown={e => handleResizeStart(e, img.id, 'n')}
+                  onTouchStart={e => handleResizeStart(e, img.id, 'n')}
                 />
                 <div
-                  style={{
-                    position: 'absolute',
-                    width: 10,
-                    height: 10,
-                    backgroundColor: '#3b82f6',
-                    left: '50%',
-                    bottom: -5,
-                    marginLeft: -5,
-                    cursor: 'ns-resize',
-                    zIndex: 101
-                  }}
-                  onMouseDown={e => handleResizeMouseDown(e, img.id, 's')}
+                  className={`resize-handle ${isLowResolution ? 'low-res-handle' : ''}`}
+                  style={getResizeHandleStyle('s')}
+                  onMouseDown={e => handleResizeStart(e, img.id, 's')}
+                  onTouchStart={e => handleResizeStart(e, img.id, 's')}
                 />
                 <div
-                  style={{
-                    position: 'absolute',
-                    width: 10,
-                    height: 10,
-                    backgroundColor: '#3b82f6',
-                    left: -5,
-                    top: '50%',
-                    marginTop: -5,
-                    cursor: 'ew-resize',
-                    zIndex: 101
-                  }}
-                  onMouseDown={e => handleResizeMouseDown(e, img.id, 'w')}
+                  className={`resize-handle ${isLowResolution ? 'low-res-handle' : ''}`}
+                  style={getResizeHandleStyle('w')}
+                  onMouseDown={e => handleResizeStart(e, img.id, 'w')}
+                  onTouchStart={e => handleResizeStart(e, img.id, 'w')}
                 />
                 <div
-                  style={{
-                    position: 'absolute',
-                    width: 10,
-                    height: 10,
-                    backgroundColor: '#3b82f6',
-                    right: -5,
-                    top: '50%',
-                    marginTop: -5,
-                    cursor: 'ew-resize',
-                    zIndex: 101
-                  }}
-                  onMouseDown={e => handleResizeMouseDown(e, img.id, 'e')}
+                  className={`resize-handle ${isLowResolution ? 'low-res-handle' : ''}`}
+                  style={getResizeHandleStyle('e')}
+                  onMouseDown={e => handleResizeStart(e, img.id, 'e')}
+                  onTouchStart={e => handleResizeStart(e, img.id, 'e')}
                 />
                 
                 {/* Rotate handle */}
                 <div
+                  className={`rotate-handle ${isLowResolution ? 'low-res-handle' : ''}`}
                   style={{
                     position: 'absolute',
-                    width: 20,
-                    height: 20,
+                    width: isLowResolution ? 35 : 20,
+                    height: isLowResolution ? 35 : 20,
                     backgroundColor: '#3b82f6',
                     left: '50%',
-                    top: -30,
-                    marginLeft: -10,
+                    top: isLowResolution ? -40 : -30,
+                    marginLeft: isLowResolution ? -17.5 : -10,
                     borderRadius: '50%',
                     cursor: 'grab',
                     zIndex: 101,
@@ -973,9 +1022,12 @@ const DesignStudio: React.FC = () => {
                     alignItems: 'center',
                     justifyContent: 'center',
                     color: 'white',
-                    fontSize: 12
+                    fontSize: isLowResolution ? 16 : 12,
+                    border: isLowResolution ? '2px solid #ffffff' : 'none',
+                    boxShadow: isLowResolution ? '0 0 4px rgba(0, 0, 0, 0.3)' : 'none'
                   }}
-                  onMouseDown={e => handleRotateMouseDown(e, img.id)}
+                  onMouseDown={e => handleRotateStart(e, img.id)}
+                  onTouchStart={e => handleRotateStart(e, img.id)}
                 >
                   ↻
                 </div>
@@ -1046,7 +1098,8 @@ const DesignStudio: React.FC = () => {
               textAlign: t.textAlign as any,
               pointerEvents: 'auto',
             }}
-            onMouseDown={e => handleOverlayMouseDown(e, t.id)}
+            onMouseDown={e => handleOverlayStart(e, t.id)}
+            onTouchStart={e => handleOverlayStart(e, t.id)}
             onClick={e => {
               e.stopPropagation();
               setTextOverlays(prev => prev.map(text => ({ ...text, selected: text.id === t.id })));
@@ -1100,124 +1153,65 @@ const DesignStudio: React.FC = () => {
               <>
                 {/* Resize handles */}
                 <div
-                  style={{
-                    position: 'absolute',
-                    width: 10,
-                    height: 10,
-                    backgroundColor: '#3b82f6',
-                    right: -5,
-                    bottom: -5,
-                    cursor: 'nwse-resize',
-                    zIndex: 101
-                  }}
-                  onMouseDown={e => handleResizeMouseDown(e, t.id, 'se')}
+                  className={`resize-handle ${isLowResolution ? 'low-res-handle' : ''}`}
+                  style={getResizeHandleStyle('se')}
+                  onMouseDown={e => handleResizeStart(e, t.id, 'se')}
+                  onTouchStart={e => handleResizeStart(e, t.id, 'se')}
                 />
                 <div
-                  style={{
-                    position: 'absolute',
-                    width: 10,
-                    height: 10,
-                    backgroundColor: '#3b82f6',
-                    left: -5,
-                    bottom: -5,
-                    cursor: 'nesw-resize',
-                    zIndex: 101
-                  }}
-                  onMouseDown={e => handleResizeMouseDown(e, t.id, 'sw')}
+                  className={`resize-handle ${isLowResolution ? 'low-res-handle' : ''}`}
+                  style={getResizeHandleStyle('sw')}
+                  onMouseDown={e => handleResizeStart(e, t.id, 'sw')}
+                  onTouchStart={e => handleResizeStart(e, t.id, 'sw')}
                 />
                 <div
-                  style={{
-                    position: 'absolute',
-                    width: 10,
-                    height: 10,
-                    backgroundColor: '#3b82f6',
-                    right: -5,
-                    top: -5,
-                    cursor: 'nesw-resize',
-                    zIndex: 101
-                  }}
-                  onMouseDown={e => handleResizeMouseDown(e, t.id, 'ne')}
+                  className={`resize-handle ${isLowResolution ? 'low-res-handle' : ''}`}
+                  style={getResizeHandleStyle('ne')}
+                  onMouseDown={e => handleResizeStart(e, t.id, 'ne')}
+                  onTouchStart={e => handleResizeStart(e, t.id, 'ne')}
                 />
                 <div
-                  style={{
-                    position: 'absolute',
-                    width: 10,
-                    height: 10,
-                    backgroundColor: '#3b82f6',
-                    left: -5,
-                    top: -5,
-                    cursor: 'nwse-resize',
-                    zIndex: 101
-                  }}
-                  onMouseDown={e => handleResizeMouseDown(e, t.id, 'nw')}
+                  className={`resize-handle ${isLowResolution ? 'low-res-handle' : ''}`}
+                  style={getResizeHandleStyle('nw')}
+                  onMouseDown={e => handleResizeStart(e, t.id, 'nw')}
+                  onTouchStart={e => handleResizeStart(e, t.id, 'nw')}
                 />
                 <div
-                  style={{
-                    position: 'absolute',
-                    width: 10,
-                    height: 10,
-                    backgroundColor: '#3b82f6',
-                    left: '50%',
-                    top: -5,
-                    marginLeft: -5,
-                    cursor: 'ns-resize',
-                    zIndex: 101
-                  }}
-                  onMouseDown={e => handleResizeMouseDown(e, t.id, 'n')}
+                  className={`resize-handle ${isLowResolution ? 'low-res-handle' : ''}`}
+                  style={getResizeHandleStyle('n')}
+                  onMouseDown={e => handleResizeStart(e, t.id, 'n')}
+                  onTouchStart={e => handleResizeStart(e, t.id, 'n')}
                 />
                 <div
-                  style={{
-                    position: 'absolute',
-                    width: 10,
-                    height: 10,
-                    backgroundColor: '#3b82f6',
-                    left: '50%',
-                    bottom: -5,
-                    marginLeft: -5,
-                    cursor: 'ns-resize',
-                    zIndex: 101
-                  }}
-                  onMouseDown={e => handleResizeMouseDown(e, t.id, 's')}
+                  className={`resize-handle ${isLowResolution ? 'low-res-handle' : ''}`}
+                  style={getResizeHandleStyle('s')}
+                  onMouseDown={e => handleResizeStart(e, t.id, 's')}
+                  onTouchStart={e => handleResizeStart(e, t.id, 's')}
                 />
                 <div
-                  style={{
-                    position: 'absolute',
-                    width: 10,
-                    height: 10,
-                    backgroundColor: '#3b82f6',
-                    left: -5,
-                    top: '50%',
-                    marginTop: -5,
-                    cursor: 'ew-resize',
-                    zIndex: 101
-                  }}
-                  onMouseDown={e => handleResizeMouseDown(e, t.id, 'w')}
+                  className={`resize-handle ${isLowResolution ? 'low-res-handle' : ''}`}
+                  style={getResizeHandleStyle('w')}
+                  onMouseDown={e => handleResizeStart(e, t.id, 'w')}
+                  onTouchStart={e => handleResizeStart(e, t.id, 'w')}
                 />
                 <div
-                  style={{
-                    position: 'absolute',
-                    width: 10,
-                    height: 10,
-                    backgroundColor: '#3b82f6',
-                    right: -5,
-                    top: '50%',
-                    marginTop: -5,
-                    cursor: 'ew-resize',
-                    zIndex: 101
-                  }}
-                  onMouseDown={e => handleResizeMouseDown(e, t.id, 'e')}
+                  className={`resize-handle ${isLowResolution ? 'low-res-handle' : ''}`}
+                  style={getResizeHandleStyle('e')}
+                  onMouseDown={e => handleResizeStart(e, t.id, 'e')}
+                  onTouchStart={e => handleResizeStart(e, t.id, 'e')}
                 />
                 
                 {/* Rotate handle */}
                 <div
+                  className={`rotate-handle ${isLowResolution ? 'low-res-handle' : ''}`}
                   style={{
                     position: 'absolute',
-                    width: 20,
-                    height: 20,
+                    width: isLowResolution ? 35 : 20,
+                    height: isLowResolution ? 35 : 20,
                     backgroundColor: '#3b82f6',
                     left: '50%',
-                    top: -30,
-                    marginLeft: -10,
+                    top: isLowResolution ? -40 : -30,
+                    marginLeft: isLowResolution ? -17.5 : -10,
                     borderRadius: '50%',
                     cursor: 'grab',
                     zIndex: 101,
@@ -1225,9 +1219,12 @@ const DesignStudio: React.FC = () => {
                     alignItems: 'center',
                     justifyContent: 'center',
                     color: 'white',
-                    fontSize: 12
+                    fontSize: isLowResolution ? 16 : 12,
+                    border: isLowResolution ? '2px solid #ffffff' : 'none',
+                    boxShadow: isLowResolution ? '0 0 4px rgba(0, 0, 0, 0.3)' : 'none'
                   }}
-                  onMouseDown={e => handleRotateMouseDown(e, t.id)}
+                  onMouseDown={e => handleRotateStart(e, t.id)}
+                  onTouchStart={e => handleRotateStart(e, t.id)}
                 >
                   ↻
                 </div>
