@@ -13,7 +13,7 @@ import {
   Category
 } from '../types';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+const API_BASE_URL = '/api';
 
 class ApiService {
   private async request<T>(
@@ -39,7 +39,7 @@ class ApiService {
       ...options,
     };
 
-    console.log(`API Request to ${API_BASE_URL}${endpoint}:`, {
+    console.log(`API Request to ${endpoint}:`, {
       method: config.method || 'GET',
       headers: config.headers,
       body: config.body
@@ -76,10 +76,18 @@ class ApiService {
       throw error;
     }
   }
-  async getUserInfo(): Promise<ApiResponse<{ user: User }>> {
-    return this.request('/user-info.php', {
+  async getUserInfo(): Promise<ApiResponse<{ user: User }> & { user?: User }> {
+    const result = await this.request<{ user: User }>('/user-info.php', {
       method: 'GET',
     });
+    // Transform the response to include user at the top level
+    if (result.success && result.data?.user) {
+      return {
+        ...result,
+        user: result.data.user
+      };
+    }
+    return result as ApiResponse<{ user: User }> & { user?: User };
   }
   // Authentication
   async login(email: string, password: string): Promise<ApiResponse<{ user: User; token: string }>> {
