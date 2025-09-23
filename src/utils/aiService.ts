@@ -3,7 +3,7 @@ import { Language } from '../types/chat';
 const API_ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions';
 const API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
 const MODEL = import.meta.env.VITE_OPENROUTER_MODEL || 'deepseek/deepseek-chat';
-const APP_URL = import.meta.env.VITE_APP_URL || 'http://localhost:5173';
+const APP_URL = import.meta.env.VITE_APP_URL || 'https://ryvona.xyz';
 
 export class AIService {
   private static validateConfig(): void {
