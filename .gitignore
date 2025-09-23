@@ -86,4 +86,15 @@ temp/
 .dynamodb/
 
 # TernJS port file
-.tern-port 
+.tern-port
+
+# Project-specific ignores
+# Logs
+backend/debug.log
+
+# Generated assets / uploads
+saved_designs/
+chat_images/
+
+# PHP vendor (if introduced later)
+vendor/ 

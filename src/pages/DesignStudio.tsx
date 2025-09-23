@@ -5,7 +5,8 @@ import {
   FaTshirt, FaPalette, FaEye, FaFont, FaImage, FaSave, 
   FaUndo, FaRedo, FaTrash, FaCloudUploadAlt,
   FaBold, FaItalic, FaUnderline, FaAlignLeft,
-  FaAlignCenter, FaAlignRight, FaExpand, FaCompress, FaMagic
+  FaAlignCenter, FaAlignRight, FaExpand, FaCompress, FaMagic,
+  FaRobot // Added AI icon
 } from 'react-icons/fa';
 import { FiMinus, FiPlus } from 'react-icons/fi';
 import { ChromePicker } from 'react-color';
@@ -1268,12 +1269,20 @@ const DesignStudio: React.FC = () => {
       <div className="w-full">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-gray-800">Design Studio</h1>
-          <button
-            onClick={handleSaveDesign}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
-          >
-            <FaSave /> Save Design
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => navigate('/ai-generator')}
+              className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2"
+            >
+              <FaRobot /> AI Generator
+            </button>
+            <button
+              onClick={handleSaveDesign}
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+            >
+              <FaSave /> Save Design
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">

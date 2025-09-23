@@ -209,20 +209,20 @@ export const AIGenerator: React.FC = () => {
         <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
         
         {/* Floating particles */}
-        <div className="absolute inset-0 overflow-hidden">
-          {[...Array(20)].map((_, i) => (
-            <div
-              key={i}
-              className="absolute w-2 h-2 bg-white rounded-full opacity-30 animate-float"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 5}s`,
-                animationDuration: `${3 + Math.random() * 4}s`
-              }}
-            />
-          ))}
-        </div>
+        <div className="absolute inset-0 overflow-hidden z-[-1]">
+        {[...Array(20)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute w-2 h-2 bg-white rounded-full opacity-30 animate-float"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 5}s`,
+              animationDuration: `${3 + Math.random() * 4}s`
+            }}
+          />
+        ))}
+      </div>
       </div>
       
       {/* Fixed Navbar at top */}
@@ -316,74 +316,73 @@ export const AIGenerator: React.FC = () => {
               </div>
             )}
 
-            <div className="w-full p-3 bg-black/20 backdrop-blur-sm rounded-lg border border-white/10">
-              <ImageDisplay 
-                image={currentImage} 
-                isGenerating={isGenerating} 
-              />
-              {currentImage && (
-                <div className="mt-4 space-y-3">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <CustomSelect
-                      options={products}
-                      value={selectedProduct}
-                      onChange={setSelectedProduct}
-                      label="Product"
-                    />
-                    
-                    <div>
-                      <label className="block text-xs font-medium text-purple-200 mb-1">Color</label>
-                      <select
-                        value={selectedColor}
-                        onChange={(e) => setSelectedColor(e.target.value)}
-                        className="w-full bg-black/30 border border-white/10 rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-purple-500"
-                      >
-                        {colors.map(color => (
-                          <option key={color} value={color}>{color}</option>
-                        ))}
-                      </select>
-                    </div>
-                    
-                    <div>
-                      <label className="block text-xs font-medium text-purple-200 mb-1">Size</label>
-                      <select
-                        value={selectedSize}
-                        onChange={(e) => setSelectedSize(e.target.value)}
-                        className="w-full bg-black/30 border border-white/10 rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-purple-500"
-                      >
-                        {sizes.map(size => (
-                          <option key={size} value={size}>{size}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                  
-                  <div className="flex space-x-3">
-                    <button
-                      onClick={handleSaveDesign}
-                      disabled={isSaving}
-                      className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${
-                        isSaving
-                          ? 'bg-purple-800 text-purple-300 cursor-not-allowed'
-                          : 'bg-purple-600 hover:bg-purple-700 text-white'
-                      }`}
-                    >
-                      {isSaving ? 'Saving...' : 'Save Design'}
-                    </button>
-                  </div>
-                  
-                  {saveSuccess && (
-                    <div className="mt-2 p-2 bg-green-500/10 border border-green-500/20 rounded-md text-center text-green-300 text-sm">
-                      Design saved successfully!
-                    </div>
-                  )}
+            <div className="w-full p-3 bg-black/20 backdrop-blur-sm rounded-lg border border-white/10 relative z-10">
+  <ImageDisplay 
+    image={currentImage} 
+    isGenerating={isGenerating} 
+  />
+  {currentImage && (
+    <div className="mt-4 space-y-3">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <CustomSelect
+          options={products}
+          value={selectedProduct}
+          onChange={setSelectedProduct}
+          label="Product"
+        />
+        <div>
+          <label className="block text-xs font-medium text-purple-200 mb-1">Color</label>
+          <select
+            value={selectedColor}
+            onChange={(e) => setSelectedColor(e.target.value)}
+            className="w-full bg-black/30 border border-white/10 rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-purple-500"
+          >
+            {colors.map(color => (
+              <option key={color} value={color}>{color}</option>
+            ))}
+          </select>
+        </div>
+        
+        <div>
+          <label className="block text-xs font-medium text-purple-200 mb-1">Size</label>
+          <select
+            value={selectedSize}
+            onChange={(e) => setSelectedSize(e.target.value)}
+            className="w-full bg-black/30 border border-white/10 rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-purple-500"
+          >
+            {sizes.map(size => (
+              <option key={size} value={size}>{size}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+      
+      <div className="flex space-x-3">
+        <button
+          onClick={handleSaveDesign}
+          disabled={isSaving}
+          className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${
+            isSaving
+              ? 'bg-purple-800 text-purple-300 cursor-not-allowed'
+              : 'bg-purple-600 hover:bg-purple-700 text-white'
+          }`}
+        >
+          {isSaving ? 'Saving...' : 'Save Design'}
+        </button>
+              </div>
+              
+              {saveSuccess && (
+                <div className="mt-2 p-2 bg-green-500/10 border border-green-500/20 rounded-md text-center text-green-300 text-sm">
+                  Design saved successfully!
                 </div>
               )}
             </div>
+          )}
+        </div>
 
             {imageHistory.length > 0 && (
-              <div className="w-full p-3 bg-black/20 backdrop-blur-sm rounded-lg border border-white/10">
-                <h2 className="text-base font-semibold text-white mb-2 flex items-center">
+              <div className="w-full p-3 bg-black/20 backdrop-blur-sm rounded-lg border border-white/10 relative z-0">
+                <h2 className="text-base font-semibold text-white mb-2 flex items-center z-0">
                   <svg className="w-3 h-3 mr-1 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                   </svg>
