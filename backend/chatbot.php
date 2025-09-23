@@ -40,7 +40,7 @@ curl_setopt($ch, CURLOPT_POST, true);
 curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postData));
 curl_setopt($ch, CURLOPT_HTTPHEADER, [
     'Authorization: Bearer ' . $apiKey,
-    'HTTP-Referer: http://localhost:5173', // Change to your actual site URL in production
+    'HTTP-Referer: https://ryvona.xyz', // Change to your actual site URL in production
     'X-Title: RYVONA',
     'Content-Type: application/json'
 ]);
