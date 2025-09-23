@@ -233,4 +233,4 @@ If you encounter any issues or have questions:
 
 ---
 
-**Made with ❤️ for the T-Shirt design community** 
+**Made with ❤️ for the T-Shirt design community** # ryvona-shop
