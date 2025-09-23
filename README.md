@@ -49,7 +49,7 @@ A modern, full-featured T-Shirt design platform built with React, TypeScript, Ta
    ```
 
 3. **Access the application**
-   - Frontend: http://localhost:5173
+   - Frontend: https://ryvona.xyz
    - Backend API: http://localhost:8080/api
    - Database: localhost:3306
 
@@ -84,7 +84,7 @@ A modern, full-featured T-Shirt design platform built with React, TypeScript, Ta
    ```
 
 6. **Open your browser**
-   - Navigate to `http://localhost:5173` (or the port shown in terminal)
+   - Navigate to `https://ryvona.xyz` (or the port shown in terminal)
 
 ## 🏗️ Project Structure
 
