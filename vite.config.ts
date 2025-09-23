@@ -4,9 +4,13 @@ import react from '@vitejs/plugin-react'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: '/',
+  base: '/', // This should be '/' for root domain deployment
   server: {
     port: 5173,
+    host: true, // Allow external access if needed
+    // Remove the proxy section for production deployment
+    // Proxy is only needed for development
+    /*
     proxy: {
       '/api': {
         target: 'https://ryvona.xyz',
@@ -25,9 +29,21 @@ export default defineConfig({
         },
       }
     }
+    */
   },
   build: {
     outDir: 'dist',
-    sourcemap: true
+    sourcemap: false, // Set to false for production for better performance
+    minify: 'terser', // Enable minification
+    terserOptions: {
+      compress: {
+        drop_console: true, // Remove console logs in production
+      }
+    }
+  },
+  // Add preview configuration for testing production build
+  preview: {
+    port: 4173,
+    host: true
   }
-}) 
+})
