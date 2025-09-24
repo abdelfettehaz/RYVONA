@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Bell, User, Settings, LogOut, ShoppingBag, Palette, Home, LayoutTemplate, Image, DollarSign, MessageCircle, Menu, X } from 'lucide-react';
 const Navbar: React.FC = () => {
-  const BASE_URL ='../../';
   const location = useLocation();
   const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -107,7 +106,7 @@ const Navbar: React.FC = () => {
         <div className="flex justify-between items-center h-17">
           <Link to="/" className="flex items-center">
             <img 
-              src={`${BASE_URL}public/ChatGPT Image Aug 15, 2025, 02_21_38 AM.png`}
+              src="./public/ChatGPT Image Aug 15, 2025, 02_21_38 AM.png"
               alt="RYVONA DESIGN YOUR WAY"
               className="w-24 h-16 sm:w-32 sm:h-20 object-contain"
             />
