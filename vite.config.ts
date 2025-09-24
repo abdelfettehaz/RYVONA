@@ -15,7 +15,7 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
         // More specific rewrite for XAMPP structure
-        rewrite: (path) => path.replace(/^\/api/, '/project/api'),
+        rewrite: (path) => path.replace(/^\/api/, '/api'),
         configure: (proxy, options) => {
           proxy.on('error', (err, req, res) => {
             console.log('Proxy error:', err);
