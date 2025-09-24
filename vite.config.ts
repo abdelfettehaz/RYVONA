@@ -9,8 +9,12 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://localhost',
+        target: process.env.NODE_ENV === 'production' 
+          ? 'http://php-apache:80' 
+          : 'http://localhost',
         changeOrigin: true,
+        // When developing against XAMPP, the project lives under /project
+        // Map /api/* from Vite to /project/api/* on Apache
         rewrite: (path) => path.replace(/^\/api/, '/project/api'),
         configure: (proxy, options) => {
           proxy.on('error', (err, req, res) => {
