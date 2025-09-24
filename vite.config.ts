@@ -15,7 +15,7 @@ export default defineConfig(({ mode }) => ({
           : 'http://localhost',
         changeOrigin: true,
         secure: false,
-        rewrite: (path) => path.replace(/^\/api/, '/RYVONA/api'),
+        rewrite: (path) => path.replace(/^\/api/, '/project/api'),
         configure: (proxy, options) => {
           proxy.on('error', (err, req, res) => {
             console.log('Proxy error:', err);
