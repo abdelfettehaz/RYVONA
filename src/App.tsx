@@ -59,7 +59,7 @@ const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 const App: React.FC = () => {
   return (
-    <Router>
+    <Router basename={import.meta.env.BASE_URL}>
       <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-indigo-100">
         <Navbar />
         <main className="flex-grow w-full px-4 py-8 mt-16">
