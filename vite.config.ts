@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: './',
+  base: process.env.NODE_ENV === 'production' ? '/your-repo-name/' : './',
   server: {
     port: 5173,
     proxy: {
@@ -14,8 +14,7 @@ export default defineConfig({
           : 'http://localhost',
         changeOrigin: true,
         secure: false,
-        // More specific rewrite for XAMPP structure
-        rewrite: (path) => path.replace(/^\/api/, '/api'),
+        rewrite: (path) => path.replace(/^\/api/, '/project/api'),
         configure: (proxy, options) => {
           proxy.on('error', (err, req, res) => {
             console.log('Proxy error:', err);
@@ -32,6 +31,6 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: true
+    sourcemap: false // Disable sourcemaps in production for smaller size
   }
 })
