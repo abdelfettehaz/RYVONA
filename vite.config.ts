@@ -13,18 +13,18 @@ export default defineConfig({
           ? 'http://php-apache:80' 
           : 'http://localhost',
         changeOrigin: true,
-        // When developing against XAMPP, the project lives under /project
-        // Map /api/* from Vite to /project/api/* on Apache
+        secure: false,
+        // More specific rewrite for XAMPP structure
         rewrite: (path) => path.replace(/^\/api/, '/project/api'),
         configure: (proxy, options) => {
           proxy.on('error', (err, req, res) => {
-            console.log('proxy error', err);
+            console.log('Proxy error:', err);
           });
           proxy.on('proxyReq', (proxyReq, req, res) => {
-            console.log('Sending Request to the Target:', req.method, req.url);
+            console.log('Sending Request to XAMPP:', req.method, req.url);
           });
           proxy.on('proxyRes', (proxyRes, req, res) => {
-            console.log('Received Response from the Target:', proxyRes.statusCode, req.url);
+            console.log('Received Response from XAMPP:', proxyRes.statusCode, req.url);
           });
         },
       }
@@ -34,4 +34,4 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: true
   }
-}) 
+})
