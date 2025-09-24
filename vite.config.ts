@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react'
 export default defineConfig(({ mode }) => ({
   plugins: [react()],
   // Use the GitHub Pages base when building in CI (env set in workflow)
-  base: process.env.GITHUB_PAGES === 'true' ? '/RYVONA/' : './',
+  base: process.env.GITHUB_PAGES === 'true' ? '//' : './',
   server: {
     port: 5173,
     proxy: {
