@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Bell, User, Settings, LogOut, ShoppingBag, Palette, Home, LayoutTemplate, Image, DollarSign, MessageCircle, Menu, X } from 'lucide-react';
 const Navbar: React.FC = () => {
-  const BASE_URL ='/';
+  const BASE_URL ='../';
   const location = useLocation();
   const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
