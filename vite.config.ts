@@ -2,9 +2,10 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
 // https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [react()],
-  base: process.env.NODE_ENV === 'production' ? '/your-repo-name/' : './',
+  // Use the GitHub Pages base when building in CI (env set in workflow)
+  base: process.env.GITHUB_PAGES === 'true' ? '/RYVONA/' : './',
   server: {
     port: 5173,
     proxy: {
@@ -33,4 +34,4 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: false // Disable sourcemaps in production for smaller size
   }
-})
+}))
