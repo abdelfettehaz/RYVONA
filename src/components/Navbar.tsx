@@ -106,7 +106,7 @@ const Navbar: React.FC = () => {
         <div className="flex justify-between items-center h-17">
           <Link to="/" className="flex items-center">
             <img 
-              src="https://drive.google.com/file/d/1cKXHZI_T1moST0BVbqO-yehGgvSUiRX6/view?usp=drive_link"
+              src="/ChatGPT Image Aug 15, 2025, 02_21_38 AM.png"
               alt="RYVONA DESIGN YOUR WAY"
               className="w-24 h-16 sm:w-32 sm:h-20 object-contain"
             />
