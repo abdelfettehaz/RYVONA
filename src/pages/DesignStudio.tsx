@@ -186,6 +186,7 @@ const DesignStudio: React.FC = () => {
   };
 
   // Helper to get product image path
+  const BASE_URL = import.meta.env.BASE_URL || '/';
   function getProductImage(product: string, color: string, view: string): string {
     if (
       productImages[product] &&
@@ -194,44 +195,44 @@ const DesignStudio: React.FC = () => {
     ) {
       return productImages[product][color][view];
     }
-    return '/images/black t-shirts/black-front.jpg';
+    return `${BASE_URL}images/black t-shirts/black-front.jpg`;
   }
 
   const productImages: Record<string, any> = {
     'V-neck t-shirt': {
       'black': {
-        'front': '/images/black t-shirts/black-front.jpg',
-        'back': '/images/black t-shirts/behind.jpg',
-        'left': '/images/black t-shirts/left.jpg',
-        'right': '/images/black t-shirts/right.jpg'
+        'front': `${BASE_URL}images/black t-shirts/black-front.jpg`,
+        'back': `${BASE_URL}images/black t-shirts/behind.jpg`,
+        'left': `${BASE_URL}images/black t-shirts/left.jpg`,
+        'right': `${BASE_URL}images/black t-shirts/right.jpg`
       },
       'white': {
-        'front': '/images/white t-shirts/front.jpg',
-        'back': '/images/white t-shirts/back.jpg',
-        'left': '/images/white t-shirts/left.jpg',
-        'right': '/images/white t-shirts/right.jpg'
+        'front': `${BASE_URL}images/white t-shirts/front.jpg`,
+        'back': `${BASE_URL}images/white t-shirts/back.jpg`,
+        'left': `${BASE_URL}images/white t-shirts/left.jpg`,
+        'right': `${BASE_URL}images/white t-shirts/right.jpg`
       },
       'red': {
-        'front': '/images/red t-shirts/front.jpg',
-        'back': '/images/red t-shirts/back.jpg',
-        'left': '/images/red t-shirts/left.jpg',
-        'right': '/images/red t-shirts/right.jpg'
+        'front': `${BASE_URL}images/red t-shirts/front.jpg`,
+        'back': `${BASE_URL}images/red t-shirts/back.jpg`,
+        'left': `${BASE_URL}images/red t-shirts/left.jpg`,
+        'right': `${BASE_URL}images/red t-shirts/right.jpg`
       },
       'navy': {
-        'front': '/images/navy t-shirts/front.jpg',
-        'back': '/images/navy t-shirts/back.jpg',
-        'left': '/images/navy t-shirts/left.jpg',
-        'right': '/images/navy t-shirts/right.jpg'
+        'front': `${BASE_URL}images/navy t-shirts/front.jpg`,
+        'back': `${BASE_URL}images/navy t-shirts/back.jpg`,
+        'left': `${BASE_URL}images/navy t-shirts/left.jpg`,
+        'right': `${BASE_URL}images/navy t-shirts/right.jpg`
       }
     },
     'Hoodie': {
       'black': {
-        'front': '/images/hoodies/black/front-hq.jpg',
-        'back': '/images/hoodies/black/back-hq.jpg'
+        'front': `${BASE_URL}images/hoodies/black/front-hq.jpg`,
+        'back': `${BASE_URL}images/hoodies/black/back-hq.jpg`
       },
       'gray': {
-        'front': '/images/hoodies/gray/front-hq.jpg',
-        'back': '/images/hoodies/gray/back-hq.jpg'
+        'front': `${BASE_URL}images/hoodies/gray/front-hq.jpg`,
+        'back': `${BASE_URL}images/hoodies/gray/back-hq.jpg`
       }
     }
   };
