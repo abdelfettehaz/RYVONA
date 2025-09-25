@@ -120,7 +120,6 @@ const Home: React.FC = () => {
     }
   ]; */
 
-  const BASE_URL = import.meta.env.BASE_URL || '/';
 
   const testimonials = [
     {
@@ -128,7 +127,7 @@ const Home: React.FC = () => {
       name: "Sarah Johnson",
       role: "Fashion Designer",
       content: "The design tools are incredibly intuitive. I've created my entire collection using this platform and the print quality is exceptional.",
-      avatar: `${BASE_URL}depositphotos_95937072-stock-photo-woman-taking-selfie.jpg`,
+      avatar: "https://i.postimg.cc/MGfnk99c/depositphotos-95937072-stock-photo-woman-taking-selfie.webp",
       rating: 5
     },
     {
@@ -136,7 +135,7 @@ const Home: React.FC = () => {
       name: "Michael Chen",
       role: "Streetwear Entrepreneur",
       content: "As a small business owner, this platform has been game-changing. The ability to create professional designs without expensive software is invaluable.",
-      avatar: `${BASE_URL}istockphoto-1460836430-612x612.jpg`,
+      avatar: "https://i.postimg.cc/Bv2JckhC/istockphoto-1460836430-612x612.jpg",
       rating: 5
     },
     {
@@ -144,7 +143,7 @@ const Home: React.FC = () => {
       name: "Emma Rodriguez",
       role: "Graphic Artist",
       content: "I love the creative freedom this platform offers. The templates are great starting points but the customization options are where it really shines.",
-      avatar: `${BASE_URL}${encodeURIComponent('positive-carefree-woman-with-curly-hair-dressed-hoodie-smiles-happily-makes-peace-gesture-takes-selfie-urban-place-being-good-mood-after-sport-training-people-emotions-sporty-lifestyle_273609-59906 (1).jpg')}`,
+      avatar:"https://i.postimg.cc/wTRZmJ4X/positive-carefree-woman-with-curly-hair-dressed-hoodie-smiles-happily-makes-peace-gesture-takes-self.avif",
       rating: 4
     }
   ];
