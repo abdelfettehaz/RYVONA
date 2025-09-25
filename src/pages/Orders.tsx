@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import apiService from '../services/api';
+import apiService, { getApiUrl } from '../services/api';
 
 declare const paypal: any;
 
@@ -147,7 +147,7 @@ const MyOrders: React.FC = () => {
           totalPrice = totalPrice * EUR_TO_TND_RATE;
         }
 
-        const response = await fetch('/api/submit-order-for-admin.php', {
+        const response = await fetch(getApiUrl('/submit-order-for-admin.php'), {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
