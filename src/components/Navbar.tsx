@@ -106,7 +106,7 @@ const Navbar: React.FC = () => {
         <div className="flex justify-between items-center h-17">
           <Link to="/" className="flex items-center">
             <img 
-              src="src/components/img.jfif"
+              src="img.jfif"
             />
           </Link>
 
