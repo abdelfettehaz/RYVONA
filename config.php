@@ -1,9 +1,9 @@
 <?php
 // Database configuration
-$host = getenv('DB_HOST') ?: "localhost";
-$dbname = "tshirt_designer";
-$username = getenv('DB_USER') ?: "root";
-$password = getenv('DB_PASS') ?: "";
+$host ="lsql204.infinityfree.com";
+$dbname = "if0_39992261_tshirt_designer	";
+$username = "if0_39992261";
+$password ="97328989AZZouz";
 
 try {
     // First connect without database to create it if needed
