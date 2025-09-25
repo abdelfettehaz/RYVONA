@@ -13,7 +13,18 @@ import {
   Category
 } from '../types';
 
-const API_BASE_URL = '/api';
+// Resolve API base URL for PHP backend. On GitHub Pages, this must point to a separate PHP host.
+// Vite env var: VITE_API_BASE_URL (e.g., https://your-php-host.example.com/api)
+const ENV_API_BASE = import.meta.env?.VITE_API_BASE_URL as string | undefined;
+const API_BASE_URL = (ENV_API_BASE && ENV_API_BASE.trim() !== '')
+  ? ENV_API_BASE.replace(/\/$/, '') // remove trailing slash
+  : '/api';
+
+// Helper to build absolute URLs to PHP endpoints (also used by modules that call fetch directly)
+export function getApiUrl(endpoint: string): string {
+  const normalized = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  return `${API_BASE_URL}${normalized}`;
+}
 
 class ApiService {
   private async request<T>(
@@ -46,7 +57,7 @@ class ApiService {
     });
 
     try {
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+      const response = await fetch(getApiUrl(endpoint), config);
       
       console.log(`API Response status: ${response.status} ${response.statusText}`);
       
