@@ -1,9 +1,9 @@
 <?php
 // Database configuration
-$host ="lsql204.infinityfree.com";
+$host ="sql204.infinityfree.com";
 $dbname = "if0_39992261_tshirt_designer";
 $username = "if0_39992261";
-$password ="97328989AZZouz";
+$password = "97328989AZZouz";
 
 try {
     // First connect without database to create it if needed
