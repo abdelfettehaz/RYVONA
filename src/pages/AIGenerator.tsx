@@ -7,7 +7,7 @@ import { PromptEnhancer } from '../components/PromptEnhancer';
 import { generateImage } from '../services/imageGeneration';
 import { GeneratedImage } from '../types/image';
 import Navbar from '../components/Navbar';
-import { apiService } from '../services/api';
+import { apiService, getApiUrl } from '../services/api';
 import { CustomSelect } from '../components/CustomSelect';
 
 interface DesignState {
@@ -155,7 +155,7 @@ export const AIGenerator: React.FC = () => {
         view: 'front'
       };
 
-      const saveResponse = await fetch('/api/save-design.php', {
+      const saveResponse = await fetch(getApiUrl('/save-design.php'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
