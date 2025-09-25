@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { getApiUrl } from '../services/api';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Bell, User, Settings, LogOut, ShoppingBag, Palette, Home, LayoutTemplate, Image, DollarSign, MessageCircle, Menu, X } from 'lucide-react';
 const Navbar: React.FC = () => {
@@ -34,7 +35,7 @@ const Navbar: React.FC = () => {
 
   const fetchNotifications = async () => {
     try {
-      const response = await fetch('/api/chat/get_notifications.php', {
+      const response = await fetch(getApiUrl('/chat/get_notifications.php'), {
         credentials: 'include',
       });
 
@@ -54,7 +55,7 @@ const Navbar: React.FC = () => {
 
   const deleteNotifications = async (notificationIds: number[] = []) => {
     try {
-      const response = await fetch('/api/chat/mark_notifications_read.php', {
+      const response = await fetch(getApiUrl('/chat/mark_notifications_read.php'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
