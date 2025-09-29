@@ -16,11 +16,9 @@ if (!$conversation_id) {
 }
 // Check user is part of conversation (admin is always id=3)
 $sql = "SELECT * FROM conversations WHERE id = ?";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param('i', $conversation_id);
-$stmt->execute();
-$result = $stmt->get_result();
-$conv = $result->fetch_assoc();
+$stmt = $pdo->prepare($sql);
+$stmt->execute([$conversation_id]);
+$conv = $stmt->fetch(PDO::FETCH_ASSOC);
 if (!$conv || ($conv['user_id'] != $user_id && $user_id != 3)) {
     http_response_code(403);
     echo json_encode(['error' => 'Not part of conversation']);
@@ -28,12 +26,10 @@ if (!$conv || ($conv['user_id'] != $user_id && $user_id != 3)) {
 }
 // List messages
 $sql = "SELECT * FROM messages WHERE conversation_id = ? ORDER BY created_at ASC";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param('i', $conversation_id);
-$stmt->execute();
-$result = $stmt->get_result();
+$stmt = $pdo->prepare($sql);
+$stmt->execute([$conversation_id]);
 $messages = [];
-while ($row = $result->fetch_assoc()) {
+while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
     $messages[] = $row;
 }
 echo json_encode(['messages' => $messages]); 

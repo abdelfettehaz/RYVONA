@@ -1,9 +1,9 @@
 <?php
 // Database configuration
-$host ="sql204.infinityfree.com";
-$dbname = "if0_39992261_tshirt_designer";
-$username = "if0_39992261";
-$password = "97328989AZZouz";
+$host = "mysql";
+$dbname = "tshirt_designer";
+$username = "tshirt_user";
+$password = "tshirt_pass";
 
 try {
     // First connect without database to create it if needed

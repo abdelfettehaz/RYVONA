@@ -22,7 +22,7 @@ services:
 
   # PHP Apache Server
   php-apache:
-    image: php:8.1-apache
+    image: php:8.2-apache
     container_name: tshirt_php
     restart: unless-stopped
     ports:
