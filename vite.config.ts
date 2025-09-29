@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => ({
       '/api': {
         target: process.env.NODE_ENV === 'production' 
           ? 'http://php-apache:80' 
-          : 'http://localhost',
+          : 'http://localhost:8080',
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api/, '/api'),
