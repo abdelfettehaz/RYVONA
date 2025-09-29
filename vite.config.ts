@@ -8,23 +8,21 @@ export default defineConfig(({ mode }) => ({
   base: process.env.GITHUB_PAGES === 'true' ? '/RYVONA/' : './',
   server: {
     port: 5173,
+    host: '0.0.0.0',
     proxy: {
       '/api': {
-        target: process.env.NODE_ENV === 'production' 
-          ? 'http://php-apache:80' 
-          : 'http://localhost:8080',
+        target: 'http://localhost:8080',
         changeOrigin: true,
         secure: false,
-        rewrite: (path) => path.replace(/^\/api/, '/api'),
         configure: (proxy, options) => {
           proxy.on('error', (err, req, res) => {
-            console.log('Proxy error:', err);
+            console.log('Proxy error:', err.message);
           });
           proxy.on('proxyReq', (proxyReq, req, res) => {
-            console.log('Sending Request to XAMPP:', req.method, req.url);
+            console.log('Sending Request to PHP Backend:', req.method, req.url);
           });
           proxy.on('proxyRes', (proxyRes, req, res) => {
-            console.log('Received Response from XAMPP:', proxyRes.statusCode, req.url);
+            console.log('Received Response from PHP Backend:', proxyRes.statusCode, req.url);
           });
         },
       }
@@ -32,6 +30,6 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     outDir: 'dist',
-    sourcemap: false // Disable sourcemaps in production for smaller size
+    sourcemap: false
   }
 }))

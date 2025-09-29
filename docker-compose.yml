@@ -22,7 +22,9 @@ services:
 
   # PHP Apache Server
   php-apache:
-    image: php:8.2-apache
+    build:
+      context: .
+      dockerfile: Dockerfile.php
     container_name: tshirt_php
     restart: unless-stopped
     ports:
@@ -35,16 +37,15 @@ services:
       - ./chat_images:/var/www/html/chat_images
       - ./mailer:/var/www/html/mailer
       - ./backend:/var/www/html/backend
+    environment:
+      - DB_HOST=mysql
+      - DB_NAME=tshirt_designer
+      - DB_USER=tshirt_user
+      - DB_PASS=tshirt_pass
     depends_on:
       - mysql
     networks:
       - tshirt_network
-    command: >
-      bash -c "
-      docker-php-ext-install pdo pdo_mysql mysqli &&
-      a2enmod rewrite &&
-      apache2-foreground
-      "
 
   # Node.js Frontend (Vite)
   frontend:
