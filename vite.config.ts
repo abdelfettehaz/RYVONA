@@ -2,27 +2,27 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => ({
+export default defineConfig({
   plugins: [react()],
-  // Use the GitHub Pages base when building in CI (env set in workflow)
-  base: process.env.GITHUB_PAGES === 'true' ? '/RYVONA/' : './',
   server: {
     port: 5173,
-    host: '0.0.0.0',
+    allowedHosts: [
+      'ryvona-uyex.onrender.com'
+    ],
     proxy: {
       '/api': {
-        target: 'http://localhost:8080',
+        target: 'http://localhost',
         changeOrigin: true,
-        secure: false,
+        rewrite: (path) => path.replace(/^\/api/, '/project/api'),
         configure: (proxy, options) => {
           proxy.on('error', (err, req, res) => {
-            console.log('Proxy error:', err.message);
+            console.log('proxy error', err);
           });
           proxy.on('proxyReq', (proxyReq, req, res) => {
-            console.log('Sending Request to PHP Backend:', req.method, req.url);
+            console.log('Sending Request to the Target:', req.method, req.url);
           });
           proxy.on('proxyRes', (proxyRes, req, res) => {
-            console.log('Received Response from PHP Backend:', proxyRes.statusCode, req.url);
+            console.log('Received Response from the Target:', proxyRes.statusCode, req.url);
           });
         },
       }
@@ -30,6 +30,23 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     outDir: 'dist',
-    sourcemap: false
+    sourcemap: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Vendor chunks
+          'react-vendor': ['react', 'react-dom'],
+          'router': ['react-router-dom'],
+          'ui-vendor': ['framer-motion', 'swiper'],
+          'chart-vendor': ['chart.js', 'react-chartjs-2'],
+          'fabric-vendor': ['fabric'],
+          'pdf-vendor': ['jspdf', 'html2canvas'],
+          'color-vendor': ['react-color'],
+          'icons-vendor': ['lucide-react', 'react-icons'],
+          'utils-vendor': ['axios', 'react-hot-toast', 'react-toastify']
+        }
+      }
+    },
+    chunkSizeWarningLimit: 1000
   }
-}))
+})
